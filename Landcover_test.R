@@ -21,18 +21,19 @@ landcover2 <- crop(landcover2, shape)
 #decrease resolution so that we are able to work with it
 landcover2<- aggregate(landcover2, fact=10, fun = mean)
 
+
+#Disables the usage of the s2 package for spatial indexing in R's sf packageand simplifies the geometry of the shape object while preserving topology.
 sf_use_s2(FALSE)
 raster2_indexed <- st_simplify(shape, preserveTopology = TRUE)
 landcover2 <- mask(landcover2, raster2_indexed)
 plot(landcover2)
 
 library(plyr)
+#extracts the most common landcover class for each district, turns this into a dataframe and then rounds values to nearest 10
 cl2test<-data.frame(shape,extract(landcover2, raster2_indexed, fun=modal, na.rm = TRUE))
-
-
 cl2test$zonesrounded<-round_any(cl2test$extract.landcover2..raster2_indexed..fun...modal..na.rm...TRUE., 10)  
 
-
+#creates breakpoints to simplify number of land categories and assigns names
 breakpoints <- c(0,40,120,130,140,
                  150,160,180,190,200,210,220 
 )
@@ -52,7 +53,10 @@ category_names <- c("Cropland",
          
 
 # Create a new column 'new_land_category' with named land categories
+# Simplified land categories are taken from European Space Agency 2017 African Land Cover Data https://www.esa.int/ESA_Multimedia/Images/2017/10/African_land_cover
 cl2test$new_land_category <- cut(cl2test$zonesrounded, breaks = breakpoints, labels = category_names, include.lowest = TRUE)
+
+#merges the shapefile and extracted landcover data frames before turning into a shpaefile and 
 cl2testraster <- merge(cl2test,shape,by="GID_2")
 cl2testraster <- st_as_sf(cl2testraster)
 cl2testraster2<-cl2testraster[ , c('COUNTRY.x','NAME_1.x', 'GID_2','NAME_2.x','new_land_category')]
