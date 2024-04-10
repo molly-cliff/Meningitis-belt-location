@@ -10,12 +10,15 @@ library(RStoolbox)
 library(sf)
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/landcover")
 
+# read in landcover reaster data
 landcover2<- raster("C3S-LC-L4-LCCS-Map-300m-P1Y-2020-v2.1.1.nc")
 
 plot(landcover2)
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents")
 shape <-read_sf(dsn = ".", layer = "Shapefile_improved")
+#crop landcover raster to africa continent shapefile
 landcover2 <- crop(landcover2, shape)
+#decrease resolution so that we are able to work with it
 landcover2<- aggregate(landcover2, fact=10, fun = mean)
 
 sf_use_s2(FALSE)
