@@ -56,7 +56,7 @@ category_names <- c("Cropland",
 # Simplified land categories are taken from European Space Agency 2017 African Land Cover Data https://www.esa.int/ESA_Multimedia/Images/2017/10/African_land_cover
 cl2test$new_land_category <- cut(cl2test$zonesrounded, breaks = breakpoints, labels = category_names, include.lowest = TRUE)
 
-#merges the shapefile and extracted landcover data frames before turning into a shpaefile and 
+# merges two datasets using a shared identifier, converts the result into a spatial dataframe, selects certain columns, and then removes duplicate rows.
 cl2testraster <- merge(cl2test,shape,by="GID_2")
 cl2testraster <- st_as_sf(cl2testraster)
 cl2testraster2<-cl2testraster[ , c('COUNTRY.x','NAME_1.x', 'GID_2','NAME_2.x','new_land_category')]
