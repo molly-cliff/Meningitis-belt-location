@@ -61,7 +61,7 @@ plot(1:20, wss, type = "b", pch = 19, frame = FALSE, xlab = "Number of Clusters 
 
 num_na <- sum(is.na(km))
 #set seed makes this reproducible as kmeans clustering can vary
-#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#conducts K-means clustering with 12 clusters on a dataset,employs hierarchical clustering
 #visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(1)
 kmeans_result <- kmeans(km, centers = 6)
@@ -119,7 +119,7 @@ st_write(total3test, "Aero6clusters.shp",append=FALSE)
 
 
 #set seed makes this reproducible as kmeans clustering can vary
-#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#conducts K-means clustering with 7 clusters on a dataset,employs hierarchical clustering
 #visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(2)
 kmeans_result <- kmeans(km, centers = 7)
@@ -176,7 +176,7 @@ st_write(total3test, "Aero7clusters.shp",append=FALSE)
 
 
 #set seed makes this reproducible as kmeans clustering can vary
-#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#conducts K-means clustering with 8 clusters on a dataset,employs hierarchical clustering
 #visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(3)
 kmeans_result <- kmeans(km, centers = 8)
@@ -238,7 +238,7 @@ st_write(total3test, "Aero8clusters.shp",append=FALSE)
 
 
 #set seed makes this reproducible as kmeans clustering can vary
-#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#conducts K-means clustering with 9 clusters on a dataset,employs hierarchical clustering
 #visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(4)
 kmeans_result <- kmeans(km, centers = 9)
@@ -306,7 +306,7 @@ st_write(total3test, "Aero9clusters.shp",append=FALSE)
 
 
 #set seed makes this reproducible as kmeans clustering can vary
-#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#conducts K-means clustering with 10 clusters on a dataset,employs hierarchical clustering
 #visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(5)
 kmeans_result <- kmeans(km, centers = 10)
@@ -370,7 +370,7 @@ st_write(total3test, "Aero10clusters.shp",append=FALSE)
 
 
 #set seed makes this reproducible as kmeans clustering can vary
-#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#conducts K-means clustering with 11 clusters on a dataset,employs hierarchical clustering
 #visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(6)
 kmeans_result <- kmeans(km, centers = 11)
