@@ -35,18 +35,17 @@ test7 <- raster_stack[[7]]
 test8 <- raster_stack[[8]]
 test9 <- raster_stack[[9]]
 
-
+# stack rasters which compromise 95% of raster data 
 files_stack <- stack(test,test2,test3,test4,test5,test6,test7,test8,test9)
 files_stack<-mask(files_stack, shape)
 
-#extract k means for africa, to create 20 different clusters of rainfall
+#extract k means for africa, we will go on to test different numbers of clusters
+# here we take our raster stack and turn it into a matrix
 
 km<-as.matrix(files_stack)
 num_na <- sum(is.na(km))
 km[is.na(km)] <- mean(km, na.rm = TRUE)
 
-
-####### testing here 
 # Determine the optimal number of clusters using the elbow method
 wss <- numeric(20)
 for (i in 1:20) {
@@ -62,14 +61,8 @@ plot(1:20, wss, type = "b", pch = 19, frame = FALSE, xlab = "Number of Clusters 
 
 num_na <- sum(is.na(km))
 #set seed makes this reproducible as kmeans clustering can vary
-
-
-
-library(raster)
-
-
-
-###testing 
+#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(1)
 kmeans_result <- kmeans(km, centers = 6)
 cluster_labels <- kmeans_result$cluster
@@ -91,7 +84,7 @@ detach("package:R.utils", unload=TRUE)
 cl2test<-data.frame(shape,extract(r_cluster, shape, fun=modal, na.rm = TRUE))
 cl2test$zonaltest<-cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.
 
-
+#hierachal clustering assign each cluster appropriately in order of hhow closely related they are based on dendorgram
 cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 1, 'Class 5', 
                                           ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 2, 'Class 6', 
                                                  ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE.== 3, 'Class 1',
@@ -100,9 +93,9 @@ cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal.
                                                                       ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==6 , 'Class 2',
                                                                              
                                                                              0)))))))
-#why are there so many NAs? data quality? how to fill in
+#see how many nas there are 
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
-
+# get rid of islands
 cl2test <- subset(cl2test, COUNTRY != "Cabo Verde")
 cl2test <- subset(cl2test, COUNTRY != "Mauritius")
 cl2test <- subset(cl2test, COUNTRY != "Seychelles")
@@ -115,7 +108,7 @@ sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 table(cl2test$zonalcat)
 
 
-# here we should think about class distribution
+#merge shapefile and aero data to form logistic regression dataset for 6 clusters
 
 cl2testraster <- merge(cl2test,shape,by="GID_2")
 cl2testraster <- st_as_sf(cl2testraster)
@@ -125,8 +118,9 @@ st_write(total3test, "Aero6clusters.shp",append=FALSE)
 
 
 
-
-###testing 
+#set seed makes this reproducible as kmeans clustering can vary
+#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(2)
 kmeans_result <- kmeans(km, centers = 7)
 cluster_labels <- kmeans_result$cluster
@@ -157,8 +151,9 @@ cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal.
                                                                       ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==6 , 'Class 4',
                                                                              ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==7 , 'Class 7',
                                                                              0))))))))
-#why are there so many NAs? data quality? how to fill in
+#see how many nas there are 
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
+# get rid of islands
 
 cl2test <- subset(cl2test, COUNTRY != "Cabo Verde")
 cl2test <- subset(cl2test, COUNTRY != "Mauritius")
@@ -171,8 +166,7 @@ cl2test_missing <- st_as_sf(cl2test)
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 table(cl2test$zonalcat)
 
-
-# here we should think about class distribution
+#merge shapefile and aero data to form logistic regression dataset for 7 clusters
 
 cl2testraster <- merge(cl2test,shape,by="GID_2")
 cl2testraster <- st_as_sf(cl2testraster)
@@ -181,7 +175,9 @@ total3test<-cl2testraster2[!duplicated(cl2testraster2[ , c("GID_2")]),]
 st_write(total3test, "Aero7clusters.shp",append=FALSE)
 
 
-
+#set seed makes this reproducible as kmeans clustering can vary
+#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(3)
 kmeans_result <- kmeans(km, centers = 8)
 cluster_labels <- kmeans_result$cluster
@@ -213,8 +209,9 @@ cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal.
                                                                              ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==7 , 'Class 6',
                                                                                     ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==8 , 'Class 1',
                                                                                     0)))))))))
-#why are there so many NAs? data quality? how to fill in
+#see how many nas there are 
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
+# get rid of islands
 
 cl2test <- subset(cl2test, COUNTRY != "Cabo Verde")
 cl2test <- subset(cl2test, COUNTRY != "Mauritius")
@@ -228,7 +225,7 @@ sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 table(cl2test$zonalcat)
 
 
-# here we should think about class distribution
+#merge shapefile and aero data to form logistic regression dataset for 8 clusters
 
 cl2testraster <- merge(cl2test,shape,by="GID_2")
 cl2testraster <- st_as_sf(cl2testraster)
@@ -240,8 +237,10 @@ st_write(total3test, "Aero8clusters.shp",append=FALSE)
 
 
 
-###testing 
-set.seed(1)
+#set seed makes this reproducible as kmeans clustering can vary
+#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
+set.seed(4)
 kmeans_result <- kmeans(km, centers = 9)
 cluster_labels <- kmeans_result$cluster
 similarity_matrix <- dist( kmeans_result$centers)
@@ -275,9 +274,9 @@ cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal.
                                                                              ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 7, 'Class 5', 
                                                                                     ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 8, 'Class 4',
                                                                                            ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==9 , 'Class 9',0))))))))))
-#why are there so many NAs? data quality? how to fill in
-table(cl2test$zonalcat)
+#see how many nas there are 
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
+# get rid of islands
 
 
 cl2test <- subset(cl2test, COUNTRY != "Cabo Verde")
@@ -291,7 +290,7 @@ sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 table(cl2test$zonalcat)
 
 
-# here we should think about class distribution
+#merge shapefile and aero data to form logistic regression dataset for 9 clusters
 
 cl2testraster <- merge(cl2test,shape,by="GID_2")
 cl2testraster <- st_as_sf(cl2testraster)
@@ -306,8 +305,10 @@ st_write(total3test, "Aero9clusters.shp",append=FALSE)
 
 
 
-###testing 
-set.seed(1)
+#set seed makes this reproducible as kmeans clustering can vary
+#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
+set.seed(5)
 kmeans_result <- kmeans(km, centers = 10)
 cluster_labels <- kmeans_result$cluster
 similarity_matrix <- dist( kmeans_result$centers)
@@ -342,9 +343,9 @@ cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal.
                                                                                     ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 8, 'Class 10',
                                                                                            ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==9 , 'Class 7',
                                                                                                   ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==10 , 'Class 6',0)))))))))))
-#why are there so many NAs? data quality? how to fill in
-table(cl2test$zonalcat)
+#see how many nas there are 
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
+# get rid of islands
 
 
 cl2test <- subset(cl2test, COUNTRY != "Cabo Verde")
@@ -358,7 +359,7 @@ sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 table(cl2test$zonalcat)
 
 
-# here we should think about class distribution
+#merge shapefile and aero data to form logistic regression dataset for 10 clusters
 
 cl2testraster <- merge(cl2test,shape,by="GID_2")
 cl2testraster <- st_as_sf(cl2testraster)
@@ -368,8 +369,10 @@ st_write(total3test, "Aero10clusters.shp",append=FALSE)
 
 
 
-###testing 
-set.seed(1)
+#set seed makes this reproducible as kmeans clustering can vary
+#conducts K-means clustering with six clusters on a dataset,employs hierarchical clustering
+#visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
+set.seed(6)
 kmeans_result <- kmeans(km, centers = 11)
 cluster_labels <- kmeans_result$cluster
 similarity_matrix <- dist( kmeans_result$centers)
@@ -405,9 +408,9 @@ cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal.
                                                                                            ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==9 , 'Class 5',
                                                                                                   ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==10 , 'Class 8',
                                                                                                          ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==11 , 'Class 6',   0))))))))))))
-#why are there so many NAs? data quality? how to fill in
-table(cl2test$zonalcat)
+#see how many nas there are 
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
+# get rid of islands
 
 cl2test <- subset(cl2test, COUNTRY != "Cabo Verde")
 cl2test <- subset(cl2test, COUNTRY != "Mauritius")
@@ -420,7 +423,7 @@ sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 table(cl2test$zonalcat)
 
 
-# here we should think about class distribution
+#merge shapefile and aero data to form logistic regression dataset for 11 clusters
 
 cl2testraster <- merge(cl2test,shape,by="GID_2")
 cl2testraster <- st_as_sf(cl2testraster)
