@@ -6,22 +6,19 @@ library(terra)
 library(tiff)
 library(RStoolbox)
 library(sf)
-setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
-
 library(purrr)
 library(R.utils)
+setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
+
+#read in aerosol raster data
 rastlist <- list.files(path = "aero", pattern='.nc$', all.files= T, full.names= T)
 allrasters <- stack(rastlist)
 
-
+#crop and mask aerosol raster data to africa ADMN2 shapefile
 shape <-read_sf(dsn = ".", layer = "Shapefile_improved")
 allrasters <- crop(allrasters, shape)
 allrasters <- mask(allrasters, shape)
 allrasters [is.na(allrasters)] <- 0
-
-
-
-
 
 #reduction of dimensionality of data
 rpc <- rasterPCA(allrasters)
