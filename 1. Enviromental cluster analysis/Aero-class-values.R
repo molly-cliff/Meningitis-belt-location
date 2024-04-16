@@ -61,7 +61,7 @@ plot(1:20, wss, type = "b", pch = 19, frame = FALSE, xlab = "Number of Clusters 
 
 num_na <- sum(is.na(km))
 #set seed makes this reproducible as kmeans clustering can vary
-#conducts K-means clustering with 12 clusters on a dataset,employs hierarchical clustering
+#conducts K-means clustering with 6 clusters on a dataset,employs hierarchical clustering
 #visualizes the resulting clusters on a raster map and displays the dendrogram from hierarchical clustering.
 set.seed(1)
 kmeans_result <- kmeans(km, centers = 6)
@@ -78,7 +78,7 @@ plot(r_cluster)
 r_cluster <- mask(r_cluster, shape)
 plot(hc)
 
-#extracts most common cluster value for each district in africa, most common as 
+#extracts most common cluster value for each district in africa
 #opposed to average as clusters are distinct from each other
 detach("package:R.utils", unload=TRUE)
 cl2test<-data.frame(shape,extract(r_cluster, shape, fun=modal, na.rm = TRUE))
@@ -136,7 +136,7 @@ plot(r_cluster)
 r_cluster <- mask(r_cluster, shape)
 plot(hc)
 
-#extracts most common cluster value for each district in africa, most common as 
+#extracts most common cluster value for each district in africa
 #opposed to average as clusters are distinct from each other
 detach("package:R.utils", unload=TRUE)
 cl2test<-data.frame(shape,extract(r_cluster, shape, fun=modal, na.rm = TRUE))
@@ -193,7 +193,7 @@ plot(r_cluster)
 r_cluster <- mask(r_cluster, shape)
 plot(hc)
 
-#extracts most common cluster value for each district in africa, most common as 
+#extracts most common cluster value for each district in africa
 #opposed to average as clusters are distinct from each other
 detach("package:R.utils", unload=TRUE)
 cl2test<-data.frame(shape,extract(r_cluster, shape, fun=modal, na.rm = TRUE))
@@ -258,7 +258,7 @@ plot(r_cluster)
 plot(hc)
 
 
-#extracts most common cluster value for each district in africa, most common as 
+#extracts most common cluster value for each district in africa
 #opposed to average as clusters are distinct from each other
 detach("package:R.utils", unload=TRUE)
 cl2test<-data.frame(shape,extract(r_cluster, shape, fun=modal, na.rm = TRUE))
@@ -326,7 +326,7 @@ plot(r_cluster)
 plot(hc)
 
 
-#extracts most common cluster value for each district in africa, most common as 
+#extracts most common cluster value for each district in africa
 #opposed to average as clusters are distinct from each other
 detach("package:R.utils", unload=TRUE)
 cl2test<-data.frame(shape,extract(r_cluster, shape, fun=modal, na.rm = TRUE))
@@ -390,7 +390,7 @@ plot(r_cluster)
 plot(hc)
 
 
-#extracts most common cluster value for each district in africa, most common as 
+#extracts most common cluster value for each district in africa
 #opposed to average as clusters are distinct from each other
 
 cl2test<-data.frame(shape,extract(r_cluster, shape, fun=modal, na.rm = TRUE))
