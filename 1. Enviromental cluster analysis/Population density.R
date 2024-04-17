@@ -18,7 +18,7 @@ Population_density <- crop(Population_density, shape)
 Population_density <- mask(Population_density, shape)
 
 # Extract average population density for each district and turn it into a dataframe
-Pop_density <- data.frame(shape, extract(Population_density, shape, fun = mean, na.rm = TRUE, touches = TRUE))
+Pop_density <- data.frame(shape, raster::extract(Population_density, shape, fun = mean, na.rm = TRUE, touches = TRUE))
 Pop_density$Pop_density <- Pop_density$extract.Population_density..shape..fun...mean..na.rm...T..touches...TRUE.
 
 # Merge datasets, select certain columns, and remove duplicate rows
