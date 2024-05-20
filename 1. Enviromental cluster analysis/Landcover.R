@@ -25,16 +25,10 @@ shape <- read_sf(dsn = ".", layer = "Shapefile_improved")
 landcover2 <- crop(landcover2, shape)
 
 # Create raster with appropriate resolution
-landcover3 <- aggregate(landcover2, fact = 3, fun = mean)
+landcover3 <- aggregate(landcover2, fact = 10, fun = mean)
 
 # Perform bilinear interpolation to resample the raster to the new resolution
 r_resampled <- resample(landcover2, landcover3, method = "bilinear")
-
-# Attempt to fix invalid geometries
-shape_valid <- st_make_valid(shape)
-
-# Check if fixing invalid geometries was successful
-validity_fixed <- st_is_valid(shape_valid)
 
 raster2_indexed <- st_simplify(shape, preserveTopology = TRUE)
 landcover2 <- mask(r_resampled, raster2_indexed)
