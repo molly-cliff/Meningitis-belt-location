@@ -12,3 +12,6 @@ This repository contains R and Stata code used to create a logistic regression m
 
 # Repository Contents
 1. [Enviromental Cluster Analysis](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/1.%20Enviromental%20cluster%20analysis)
+2. [Data Cleaning](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/2.Data%20Cleaning)
+3. [Intersection Analysis](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/3.%20Intersections)
+4. [Logistic Regression](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/4.%20Logistic%20regression)
