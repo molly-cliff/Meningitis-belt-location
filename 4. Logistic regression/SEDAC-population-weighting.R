@@ -26,7 +26,7 @@ Pop_density2010<- read_sf(dsn = ".", layer = "Pop_density2010")
 Pop_density2015<- read_sf(dsn = ".", layer = "Pop_density2015")
 Pop_density2020<- read_sf(dsn = ".", layer = "Pop_density2020")
 
-windspeed <- read_sf(dsn = ".", layer = "windspeedagain")
+windspeed <- read_sf(dsn = ".", layer = "windspeed9classes")
 enviromentalsurfaces <- read_sf(dsn = ".", layer = "Landcoverbilinear")
 Rainfallcat <- read_sf(dsn = ".", layer = "rainfallbilinear")
 Aerocat <- read_sf(dsn = ".", layer = "Aero9clusters")
