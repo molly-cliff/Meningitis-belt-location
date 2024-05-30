@@ -21,7 +21,7 @@ setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_menin
 
 # Read in all the environmental data
 Pop_density <- read_sf(dsn = ".", layer = "Population_density")
-windspeed <- read_sf(dsn = ".", layer = "windspeedagain")
+windspeed <- read_sf(dsn = ".", layer = "windspeed9classes")
 enviromentalsurfaces <- read_sf(dsn = ".", layer = "Landcoverbilinear")
 Rainfallcat <- read_sf(dsn = ".", layer = "rainfallbilinear")
 Aerocat <- read_sf(dsn = ".", layer = "Aero9clusters")
@@ -547,7 +547,7 @@ plot(roc_curve, main = "Receiver Operating Characteristic (ROC) Curve",
 legend("bottomright", legend = c("ROC Curve"), col = colors[2], lwd = 2, cex = 1.2)
 
 cutoffs <- c(0, 0.2, 0.4,0.6, 0.8,1)
-risk_categories <- c( "Very Low <0.15", "Low <0.35","Moderate <0.55", "High <0.75", "Very High <1")
+risk_categories <- c( "Very Low <0.2", "Low <0.4","Moderate <0.6", "High <0.8", "Very High <1")
 
 
 merged_data2<-cbind(merged_data, predicted)
