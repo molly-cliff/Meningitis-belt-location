@@ -298,50 +298,7 @@ cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal.
                                                                                                   ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==10 , 'Class 11',
                                                                                                          ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==11 , 'Class 12',
                                                                                                                 ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==12 , 'Class 5',0)))))))))))))
-#why are there so many NAs? data quality? how to fill in
-# Remove NA values and islands
-sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
-cl2test <- subset(cl2test, !COUNTRY %in% c("Cabo Verde", "Mauritius", "Seychelles", "São Tomé and Príncipe", "Comoros"))
-sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 
-# Merge shapefile and data to form logistic regression dataset for 11 clusters
-cl2testraster <- merge(cl2test, shape, by = "GID_2")
-cl2testraster <- st_as_sf(cl2testraster)
-cl2testraster2 <- cl2testraster[, c('COUNTRY.x', 'NAME_1.x', 'GID_2', 'NAME_2.x', 'zonalcat')]
-
-
-
-
-
-#set seed makes this reproducible as kmeans clustering can vary
-set.seed(12)
-kmeans_result <- kmeans(km, centers = 12)
-cluster_labels <- kmeans_result$cluster
-similarity_matrix <- dist( kmeans_result$centers)
-hc <- hclust(similarity_matrix)
-reordered_labels <- cutree(hc,12) 
-cluster_labels <- reordered_labels[cluster_labels]
-cl = raster(files_stack)
-cl[] = cluster_labels 
-
-r_cluster <- setValues(cl, cluster_labels)
-r_cluster <- mask(r_cluster, shape)
-plot(r_cluster)
-r_cluster <- mask(r_cluster, shape)
-plot(hc)
-
-cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 1, 'Class 6', 
-                                          ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 2, 'Class 2', 
-                                                 ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE.== 3, 'Class 3',
-                                                        ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 4, 'Class 10', 
-                                                               ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 5, 'Class 4',
-                                                                      ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==6 , 'Class 8',
-                                                                             ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==7 , 'Class 1',
-                                                                                    ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==8 , 'Class 9',
-                                                                                           ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==9 , 'Class 7',
-                                                                                                  ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==10 , 'Class 11',
-                                                                                                         ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==11 , 'Class 12',
-                                                                                                                ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==12 , 'Class 5',0)))))))))))))
 # Remove NA values and islands
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 cl2test <- subset(cl2test, !COUNTRY %in% c("Cabo Verde", "Mauritius", "Seychelles", "São Tomé and Príncipe", "Comoros"))
