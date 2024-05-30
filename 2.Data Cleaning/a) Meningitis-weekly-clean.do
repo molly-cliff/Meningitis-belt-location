@@ -470,5 +470,7 @@ drop GID_2x
 drop NAME_2_x
 drop Epidemic_YN
 sort district_country
+
+//the dta file here feeds directly into the WHO polio b) do file
 save "weeklyincidencemissing.dta", replace
 
