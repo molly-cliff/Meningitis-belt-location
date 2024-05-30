@@ -1,5 +1,5 @@
+# Load required libraries
 library(dplyr)
-
 library(ggplot2)
 library(reshape2)
 library(terra)
@@ -8,60 +8,62 @@ library(RStoolbox)
 library(sf)
 library(beepr)
 library(raster)
+
+# Set working directory
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
+
+# List and stack windspeed netCDF files
 rastlist <- list.files(path = "windspeed", pattern='.nc$', full.names= TRUE)
 allrasters <- stack(rastlist)
-allrastersrotate<-rotate(allrasters)
+allrastersrotate <- rotate(allrasters)
 
-
+# List and stack rainfall TIFF files
 rastlist <- list.files(path = "Rainfall", pattern='.tif$', all.files= T, full.names= T)
-#read in shapes
-library(raster)
-
 rainfall <- stack(rastlist)
 
+# Read in the coordinate reference system (CRS) from the rainfall data
 africa_crs <- crs(rainfall)
 allrastersrotate <- projectRaster(allrastersrotate, crs = africa_crs)
-# Reduce resolution of the file
-allrastersrotate2 <- aggregate(allrastersrotate, fact=5, fun = mean)
-library(raster)
 
+# Reduce the resolution of the windspeed raster
+allrastersrotate2 <- aggregate(allrastersrotate, fact=5, fun = mean)
+
+# Resample the windspeed raster
 r_resampledrotate <- resample(allrastersrotate, allrastersrotate2, method = "bilinear")
 
-shape <-read_sf(dsn = ".", layer = "Shapefile_improved")
+# Read the shapefile
+shape <- read_sf(dsn = ".", layer = "Shapefile_improved")
 
-
-
+# Crop and mask the windspeed raster to the shapefile boundaries
 allrastersrotate <- crop(r_resampledrotate, shape)
 allrastersrotate <- mask(allrastersrotate, shape)
 
-
+# Replace NA values in the raster with 0
 allrastersrotate[is.na(allrastersrotate)] <- 0
 
-# Dimensionality reduction using PCA
+# Perform PCA on the raster data for dimensionality reduction
 rpc <- rasterPCA(allrastersrotate)
 raster_stack <- stack(rpc$map)
 summary(rpc$model)
 
-# Extracting rasters comprising 95% of the data
+# Extract the first two principal components
 files_stack <- raster_stack[[1:2]]
 
-
-
-# Extract k-means for Africa
+# Prepare data for K-means clustering
 km <- as.matrix(files_stack)
 km[is.na(km)] <- mean(km, na.rm = TRUE)
 
-# Determine optimal number of clusters using elbow method
+# Determine optimal number of clusters using the elbow method
 wss <- numeric(20)
 for (i in 1:20) {
   kmeans_model <- kmeans(km, centers = i, nstart = 20)
   wss[i] <- sum(kmeans_model$withinss)
 }
 
-# Plot elbow chart
+# Plot the elbow chart to find the optimal number of clusters
 plot(1:20, wss, type = "b", pch = 19, frame = FALSE, xlab = "Number of Clusters (k)", ylab = "Total Within Sum of Squares")
 
+# Refine the cluster range and plot again
 wss <- numeric(15)
 for (i in 1:15) {
   kmeans_model <- kmeans(km, centers = i, nstart = 15)
@@ -97,18 +99,11 @@ plot(r_cluster)
 r_cluster <- mask(r_cluster, shape)
 plot(hc)
 
-
-
-
-
-
-
-#extracts most common cluster value for each district in africa, most common as 
-#opposed to average as clusters are distinct from each other)
+# Extract most common cluster value for each district in Africa
 cl2test<-data.frame(shape,extract(r_cluster, shape, fun=modal, na.rm = TRUE))
 cl2test$zonaltest<-cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.
 plot(hc)
-#labelling zones, into the linked classes based on hc
+# Assign hierarchical clustering labels
 cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 1, 'Class 5', 
                                           ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 2, 'Class 4', 
                                                  ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE.== 3, 'Class 6',
@@ -116,25 +111,28 @@ cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal.
                                                                ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 5, 'Class 4',
                                                                       ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==6 , 'Class 1',
                                                                              0 )))))))
-#why are there so many NAs? data quality? how to fill in
+# Check for NA values
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 table(cl2test$zonalcat)
-# here we should think about class distribution
 
 
 
-
+# Remove islands
 cl2test <- subset(cl2test, COUNTRY != "Cabo Verde")
 cl2test <- subset(cl2test, COUNTRY != "Mauritius")
 cl2test <- subset(cl2test, COUNTRY != "Seychelles")
 cl2test <- subset(cl2test, COUNTRY != "São Tomé and Príncipe")
 cl2test <- subset(cl2test, COUNTRY != "Comoros")
 
-cl2testraster <- merge(cl2test,shape,by="GID_2")
-cl2testraster <- st_as_sf(cl2testraster)
-cl2testraster2<-cl2testraster[ , c('COUNTRY.x','NAME_1.x', 'GID_2','NAME_2.x','zonalcat')]
-total3test<-cl2testraster2[!duplicated(cl2testraster2[ , c("GID_2")]),]
 
+# Merge shapefile and raster data
+cl2testraster <- merge(cl2test, shape, by = "GID_2")
+cl2testraster <- st_as_sf(cl2testraster)
+cl2testraster2 <- cl2testraster[, c('COUNTRY.x', 'NAME_1.x', 'GID_2', 'NAME_2.x', 'zonalcat')]
+
+# Remove duplicate rows
+total3test <- cl2testraster2[!duplicated(cl2testraster2[, c("GID_2")]),]
+table(total3test$zonalcat)
 st_write(total3test, "windspeed6classes.shp", append = FALSE)
 
 
@@ -160,9 +158,6 @@ plot(hc)
 cl2test<-data.frame(shape,extract(r_cluster, shape, fun=modal, na.rm = TRUE))
 cl2test$zonaltest<-cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.
 plot(hc)
-
-
-
 
 # Assign hierarchical clustering labels
 cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. == 1, 'Class 5', 
@@ -260,10 +255,6 @@ total3test <- cl2testraster2[!duplicated(cl2testraster2[, c("GID_2")]),]
 table(total3test$zonalcat)
 st_write(total3test, "windspeed8classes.shp", append = FALSE)
 
-
-
-
-
 # Perform K-means clustering with 9 centers
 set.seed(4320)
 kmeans_result <- kmeans(km, centers = 9)
@@ -332,11 +323,8 @@ total3test$zonalcat[rows_to_replace] <- "Class 8"
 st_write(total3test, "windspeed9classes.shp", append = FALSE)
 
 
+## Perform K-means clustering with 10 centers
 
-
-#we are trying this with different cluster sizes, 10 clusters, through to 6
-#10 clusters
-#set seed makes this reproducible as kmeans clustering can vary
 set.seed(420)
 kmeans_result <- kmeans(km, centers = 10)
 cluster_labels <- kmeans_result$cluster
@@ -407,8 +395,7 @@ st_write(total3test, "windspeed10classes.shp", append = FALSE)
 
 
 
-#we are trying this with different cluster sizes, 11 clusters
-#set seed makes this reproducible as kmeans clustering can vary
+## Perform K-means clustering with 11 centers
 set.seed(420000)
 kmeans_result <- kmeans(km, centers = 11)
 cluster_labels <- kmeans_result$cluster
