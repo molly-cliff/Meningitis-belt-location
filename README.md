@@ -11,7 +11,11 @@ This repository contains R and Stata code used to create a logistic regression m
 
 
 # Repository Contents
-1. [Enviromental Cluster Analysis](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/1.%20Enviromental%20cluster%20analysis)
-2. [Data Cleaning](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/2.Data%20Cleaning)
-3. [Intersection Analysis](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/3.%20Intersections)
+1. [Enviromental Cluster Analysis](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/1.%20Enviromental%20cluster%20analysis)- Processes monthly temporal data into single surface comprising of climatic variable profiles. This is largely carried out using Principle component analysis and the  K means algorithm  to divide each seasonal variable raster into distinct clusters based on data similarity. This folder also includes code to extract average population density for each ADMN2 district within an African continental GADM shapefile.
+   
+2. [Data Cleaning](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/2.Data%20Cleaning)- Stata code to assign meningitis epidemics  to their nearest ADMN2 district within the GADM shapefile.
+
+
+3. [Intersection Analysis](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/3.%20Intersections) - Maps epidemics reported to older adminstrative boundaries to exisiting (2024) ADMN2 districts using a WHO Polio shapefile due to the changing nature of district boundaries.  ADMN2 level district intersections between the WHO Polio and GADM shapefiles were calculated and filtered where they overlap by 50% and then 30% and included as an outbreak district.
+   
 4. [Logistic Regression](https://github.com/molly-cliff/Meningitis-belt-location/tree/main/4.%20Logistic%20regression)
