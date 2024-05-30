@@ -111,65 +111,108 @@ write_xlsx(filtered_intersections30, "filtered_intersections30_weekly.xlsx")
 
 # Repeat process for annual data
 file_path <- "annualreducedincidence.xlsx"
-annualincidence_merge <- readxl::read_excel(file_path)
+
+#file_path <- "testingannual.xlsx"
+annualincidence_merge<-readxl::read_excel(file_path)
+
+
 filtered_shapefile2 <- ADMN2 %>%
   right_join(annualincidence_merge, by = "district_country")
-filtered_shapefile <- filtered_shapefile2[!duplicated(filtered_shapefile2[, c("district_country")]), ]
+filtered_shapefile<-filtered_shapefile2[!duplicated(filtered_shapefile2[ , c("district_country")]),]
+#shape2 <-st_read("Shapefile_improved.shp")
+countries_list <- c(
+  "Democratic Republic of the Congo"
+)
 
-# Filter GADM shapefile for specific countries
-countries_list <- c("Democratic Republic of the Congo")
+
+# Filter the shapefile based on the list of countries
 shape2 <- shape2[shape2$COUNTRY %in% countries_list, ]
 shape2$district_country <- paste(shape2$NAME_2, shape2$COUNTRY, sep = " ")
 
-# Check and repair invalid geometries
+# Check for invalid geometries in shapefile1
 invalid_geoms1 <- st_is_valid(filtered_shapefile)
+
+# Check for invalid geometries in shapefile2
 invalid_geoms2 <- st_is_valid(shape2)
-if (sum(!invalid_geoms1) > 0) {
+# Identify and print any invalid geometries
+if (sum(invalid_geoms1) > 0) {
   cat("Invalid geometries in shapefile1:\n")
-  print(which(!invalid_geoms1))
-  filtered_shapefile <- st_make_valid(filtered_shapefile)
+  print(which(invalid_geoms1))
 }
-if (sum(!invalid_geoms2) > 0) {
+
+if (sum(invalid_geoms2) > 0) {
   cat("Invalid geometries in shapefile2:\n")
-  print(which(!invalid_geoms2))
-  shape2 <- st_make_valid(shape2)
+  print(which(invalid_geoms2))
 }
 
-# Simplify geometries
-filtered_shapefile <- st_simplify(filtered_shapefile, dTolerance = 0.001)
-shape2 <- st_simplify(shape2, dTolerance = 0.001)
+# Repair invalid geometries in shapefile1
+shapefile1 <- st_make_valid(filtered_shapefile)
 
-# Transform the geometries of shape2 to match the CRS of filtered_shapefile
-target_crs <- st_crs(filtered_shapefile)
-shape2_transformed <- st_transform(shape2, crs = target_crs)
-shape2_transformed$district_countryimportant <- shape2_transformed$district_country
+# Repair invalid geometries in shapefile2
+shapefile2 <- st_make_valid(shape2)
 
-# Calculate the intersection and area
-intersections <- st_intersection(filtered_shapefile, shape2_transformed)
+shapefile1 <- st_simplify(shapefile1, dTolerance = 0.001)
+shapefile2 <- st_simplify(shapefile2, dTolerance = 0.001)
+
+print(st_crs(shapefile1))
+print(st_crs(shapefile2))
+
+# Choose the target CRS (replace "EPSG:4326" with your desired CRS)
+target_crs <- st_crs(shapefile1)
+
+# Transform the geometries of shapefile2 to match the CRS of shapefile1
+shapefile2_transformed <- st_transform(shapefile2, crs = target_crs)
+shapefile2_transformed$district_countryimportant <- shapefile2_transformed$district_country
+
+
+
+# Calculate the intersection
+intersections <- st_intersection(shapefile1, shapefile2_transformed)
+#intersections$district_country_important <-intersections$district_country.1
+# Calculate the area of each intersection
 intersections$area_intersection <- st_area(intersections)
+
 intersections$district_countryshape <- intersections$district_countrykeep
+intersections<-intersections[ , c('GID_1','GID_0', 'GID_2','NAME_2','district_countryshape'
+                                  ,'district_country','area_intersection','district_countryimportant')]
 
-# Add original area to the shapefiles and prepare for joining
-filtered_shapefile$area_original <- st_area(filtered_shapefile)
-shapefile1 <- as.data.frame(filtered_shapefile)
-intersections <- as.data.frame(intersections)
+shapefile1$district_countryshape <- shapefile1$district_countrykeep
+shapefile1$area_original <- st_area(shapefile1)
+shapefile1<-shapefile1[ , c("ADM2_NAME.x","ADM1_NAME.x", "ADM0_NAME.x" ,'COUNTRY','district_country'
+,'area_original',"geometry.x" )]
+
+
+# Calculate the area of each original district in shapefile1
+
+
+shapefile1<-as.data.frame(shapefile1)
+intersections<-as.data.frame(intersections)
 common_column <- "district_country"
-joined_shapefiles <- merge(intersections, shapefile1, by = common_column, all.x = TRUE)
+joined_shapefiles <- merge(intersections, shapefile1, by =  common_column, all.x = TRUE)
 
-# Filter intersections where the area is at least 50% or 30% of the original district
+library(units)
+
+# Filter the intersections where the area is at least 50% of either district
 filtered_intersections50 <- joined_shapefiles[
-  joined_shapefiles$area_intersection >= 0.5 * joined_shapefiles$area_original, ]
-filtered_intersections50 <- filtered_intersections50[!duplicated(filtered_intersections50[, c("district_countryshape")]), ]
-filtered_intersections50 <- filtered_intersections50[!duplicated(filtered_intersections50[, c("district_countryimportant")]), ]
+  joined_shapefiles$'area_intersection' >= 0.5 * joined_shapefiles$'area_original', ]
+filtered_intersections50 <-filtered_intersections50 [!duplicated(filtered_intersections50[ , c("district_countryshape")]),]
 
-filtered_intersections50_subset <- filtered_intersections50[, -which(names(filtered_intersections50) == "district_country")]
-filtered_intersections50$district_country<-filtered_intersections50$district_countryimportant
+
+filtered_intersections50 <-filtered_intersections50 [!duplicated(filtered_intersections50[ , c("district_countryimportant")]),]
 joined_shapefiles_test <- anti_join(joined_shapefiles, filtered_intersections50, by = c("district_countryimportant"))
 filtered_intersections30 <- joined_shapefiles_test[
-  joined_shapefiles_test$area_intersection >= 0.3 * joined_shapefiles_test$area_original, ]
-filtered_intersections30 <- filtered_intersections30[!duplicated(filtered_intersections30[, c("district_countryimportant")]), ]
-filtered_intersections30_subset <- filtered_intersections30[, -which(names(filtered_intersections50) == "district_country")]
+joined_shapefiles_test$'area_intersection' >= 0.3 * joined_shapefiles_test$'area_original', ]
+filtered_intersections30 <-filtered_intersections30 [!duplicated(filtered_intersections30[ , c("district_countryimportant")]),]
+
+# Count the number of qualifying intersections
+num_overlapping_districts <- nrow(filtered_intersections50)
+filtered_intersections50$epidemic <- 1
+filtered_intersections30$epidemic <- 1
+filtered_intersections50 <- filtered_intersections50[, -which(names(filtered_intersections50) == "district_country")]
+filtered_intersections50$district_country<-filtered_intersections50$district_countryimportant
+filtered_intersections30 <- filtered_intersections30[, -which(names(filtered_intersections30) == "district_country")]
 filtered_intersections30$district_country<-filtered_intersections30$district_countryimportant
-# Write filtered data to Excel files
+
+ library(writexl)
 write_xlsx(filtered_intersections50, "filtered_intersections50_annual2.xlsx")
 write_xlsx(filtered_intersections30, "filtered_intersections30_annual.xlsx")
