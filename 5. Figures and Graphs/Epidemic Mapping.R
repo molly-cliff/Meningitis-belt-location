@@ -38,10 +38,10 @@ annualincidence_merge<-annualincidence_merge[!duplicated(annualincidence_merge[ 
 merged_data <- merge(merged_data, annualincidence_merge, by = "district_country", all.x = TRUE)
 
 
-
+#Convert to sf object
 africa <- st_as_sf(merged_data)
 
-
+#Create epidemic column
 africa$epidemic <- ifelse(africa$epidemic_annual == 1 | africa$epidemic_weekly == 1, 1, 0)
 africa$epidemic[is.na(africa$epidemic)] <- 0
 
