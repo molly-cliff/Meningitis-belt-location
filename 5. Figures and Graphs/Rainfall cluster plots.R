@@ -6,16 +6,18 @@ library(terra)
 library(tiff)
 library(RStoolbox)
 library(sf)
-cl2test <-read_sf(dsn = ".", layer = "rainfallbilinear")
-plot(cl2test['zonalcat']) 
 
+#Read in GADM Shapefile and Rainfall clusters
+cl2test <-read_sf(dsn = ".", layer = "rainfallbilinear")
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents")
 shape <-read_sf(dsn = ".", layer = "Shapefile_improved")
-#this section essentially allows for the figure 1 graphing in the
-#molesworth paper to show seaosnal distrinct paterns in each class
-#not part of analysis for logistic regression
-setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Rainfall")
 
+
+
+#Set working directory, the tif files could be instead organised into folders instead which are then uploaded in bulk and automatically stacked
+# This would save a lot of code and computational space, but is currently written this way due to ease of organisation at the time
+setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Rainfall")
+#Read in tif files for each year by month
 Jan2<-'chirps-v2.0_2002.01.tif' 
 Jan3<-'chirps-v2.0_2003.01.tif' 
 Jan4<-'chirps-v2.0_2004.01.tif' 
@@ -37,7 +39,6 @@ Jan19<-'chirps-v2.0_2019.01.tif'
 Jan20<-'chirps-v2.0_2020.01.tif' 
 Jan21<-'chirps-v2.0_2021.01.tif' 
 Jan22<-'chirps-v2.0_2022.01.tif' 
-#str_name<-'Population_density.tif' 
 Jan2<- raster(Jan2)
 Jan3<- raster(Jan3)
 Jan4<- raster(Jan4)
@@ -59,14 +60,15 @@ Jan19<- raster(Jan19)
 Jan20<- raster(Jan20)
 Jan21<- raster(Jan21)
 Jan22<- raster(Jan22)
-mean_jan <- stack(
-  
-  Jan2, Jan3,Jan4,Jan5,Jan6,Jan7,Jan8,Jan9,Jan10, Jan11, Jan12,
+# Stack these, calculate monthly rainfall adn then extract average by district to turn into a shapefile
+mean_jan <- stack(Jan2, Jan3,Jan4,Jan5,Jan6,Jan7,Jan8,Jan9,Jan10, Jan11, Jan12,
 Jan13, Jan14, Jan15, Jan16, Jan17, Jan18, Jan19, Jan20, Jan21, Jan22)
 mean_jan <- calc(mean_jan, mean)
 mean_jan<-data.frame(shape,extract(mean_jan, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_jan$Jan<-mean_jan$extract.mean_jan..shape..fun...mean..na.rm...T..touches...TRUE.
 
+
+#Repeat for each month: Feb
 Feb2<-'chirps-v2.0_2002.02.tif' 
 Feb3<-'chirps-v2.0_2003.02.tif' 
 Feb4<-'chirps-v2.0_2004.02.tif' 
@@ -88,7 +90,6 @@ Feb19<-'chirps-v2.0_2019.02.tif'
 Feb20<-'chirps-v2.0_2020.02.tif' 
 Feb21<-'chirps-v2.0_2021.02.tif' 
 Feb22<-'chirps-v2.0_2022.02.tif' 
-#str_name<-'Population_density.tif' 
 
 Feb2<- raster(Feb2)
 Feb3<- raster(Feb3)
@@ -117,6 +118,7 @@ mean_Feb <- calc(mean_Feb, mean)
 mean_Feb<-data.frame(shape,extract(mean_Feb, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_Feb$Feb<-mean_Feb$extract.mean_Feb..shape..fun...mean..na.rm...T..touches...TRUE.
 
+#Mar
 Mar2<-'chirps-v2.0_2002.03.tif' 
 Mar3<-'chirps-v2.0_2003.03.tif' 
 Mar4<-'chirps-v2.0_2004.03.tif' 
@@ -138,9 +140,6 @@ Mar19<-'chirps-v2.0_2019.03.tif'
 Mar20<-'chirps-v2.0_2020.03.tif' 
 Mar21<-'chirps-v2.0_2021.03.tif' 
 Mar22<-'chirps-v2.0_2022.03.tif' 
-#str_name<-'Population_density.tif'
-
-
 
 Mar2<- raster(Mar2)
 Mar3<- raster(Mar3)
@@ -169,6 +168,7 @@ mean_Mar <- calc(mean_Mar, mean)
 mean_Mar<-data.frame(shape,extract(mean_Mar, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_Mar$Mar<-mean_Mar$extract.mean_Mar..shape..fun...mean..na.rm...T..touches...TRUE.
 
+#Apr
 Apr2<-'chirps-v2.0_2002.04.tif' 
 Apr3<-'chirps-v2.0_2003.04.tif' 
 Apr4<-'chirps-v2.0_2004.04.tif' 
@@ -190,7 +190,7 @@ Apr19<-'chirps-v2.0_2019.04.tif'
 Apr20<-'chirps-v2.0_2020.04.tif' 
 Apr21<-'chirps-v2.0_2021.04.tif' 
 Apr22<-'chirps-v2.0_2022.04.tif' 
-#str_name<-'Population_density.tif' 
+
 
 Apr2<- raster(Apr2)
 Apr3<- raster(Apr3)
@@ -219,7 +219,7 @@ mean_Apr<-data.frame(shape,extract(mean_Apr, shape, fun=mean, na.rm=T, touches=T
 mean_Apr$Apr<-mean_Apr$extract.mean_Apr..shape..fun...mean..na.rm...T..touches...TRUE.
 
 
-
+#May
 May2<-'chirps-v2.0_2002.05.tif' 
 May3<-'chirps-v2.0_2003.05.tif' 
 May4<-'chirps-v2.0_2004.05.tif' 
@@ -241,7 +241,6 @@ May19<-'chirps-v2.0_2019.05.tif'
 May20<-'chirps-v2.0_2020.05.tif' 
 May21<-'chirps-v2.0_2021.05.tif' 
 May22<-'chirps-v2.0_2022.05.tif' 
-#str_name<-'Population_density.tif' 
 
 
 May2<- raster(May2)
@@ -271,7 +270,7 @@ mean_May<-data.frame(shape,extract(mean_May, shape, fun=mean, na.rm=T, touches=T
 mean_May$May<-mean_May$extract.mean_May..shape..fun...mean..na.rm...T..touches...TRUE.
 
 
-
+#June
 June2<-'chirps-v2.0_2002.06.tif' 
 June3<-'chirps-v2.0_2003.06.tif' 
 June4<-'chirps-v2.0_2004.06.tif' 
@@ -293,7 +292,6 @@ June19<-'chirps-v2.0_2019.06.tif'
 June20<-'chirps-v2.0_2020.06.tif' 
 June21<-'chirps-v2.0_2021.06.tif' 
 June22<-'chirps-v2.0_2022.06.tif' 
-#str_name<-'Population_density.tif' 
 
 
 
@@ -323,9 +321,7 @@ mean_June <- calc(mean_June, mean)
 mean_June<-data.frame(shape,extract(mean_June, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_June$June<-mean_June$extract.mean_June..shape..fun...mean..na.rm...T..touches...TRUE.
 
-
-
-
+#July
 July2<-'chirps-v2.0_2002.07.tif' 
 July3<-'chirps-v2.0_2003.07.tif' 
 July4<-'chirps-v2.0_2004.07.tif' 
@@ -347,9 +343,6 @@ July19<-'chirps-v2.0_2019.07.tif'
 July20<-'chirps-v2.0_2020.07.tif' 
 July21<-'chirps-v2.0_2021.07.tif' 
 July22<-'chirps-v2.0_2022.07.tif' 
-#str_name<-'Population_density.tif' 
-
-
 
 July2<- raster(July2)
 July3<- raster(July3)
@@ -378,7 +371,7 @@ mean_July<-data.frame(shape,extract(mean_July, shape, fun=mean, na.rm=T, touches
 mean_July$July<-mean_July$extract.mean_July..shape..fun...mean..na.rm...T..touches...TRUE.
 
 
-
+#Aug
 Aug2<-'chirps-v2.0_2002.08.tif' 
 Aug3<-'chirps-v2.0_2003.08.tif' 
 Aug4<-'chirps-v2.0_2004.08.tif' 
@@ -400,9 +393,6 @@ Aug19<-'chirps-v2.0_2019.08.tif'
 Aug20<-'chirps-v2.0_2020.08.tif' 
 Aug21<-'chirps-v2.0_2021.08.tif' 
 Aug22<-'chirps-v2.0_2022.08.tif' 
-#str_name<-'Population_density.tif' 
-
-
 
 Aug2<- raster(Aug2)
 Aug3<- raster(Aug3)
@@ -430,7 +420,7 @@ mean_Aug <- calc(mean_Aug, mean)
 mean_Aug<-data.frame(shape,extract(mean_Aug, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_Aug$Aug<-mean_Aug$extract.mean_Aug..shape..fun...mean..na.rm...T..touches...TRUE.
 
-
+#Sep
 Sep2<-'chirps-v2.0_2002.09.tif' 
 Sep3<-'chirps-v2.0_2003.09.tif' 
 Sep4<-'chirps-v2.0_2004.09.tif' 
@@ -452,8 +442,6 @@ Sep19<-'chirps-v2.0_2019.09.tif'
 Sep20<-'chirps-v2.0_2020.09.tif' 
 Sep21<-'chirps-v2.0_2021.09.tif' 
 Sep22<-'chirps-v2.0_2022.09.tif' 
-#str_name<-'Population_density.tif' 
-
 
 Sep2<- raster(Sep2)
 Sep3<- raster(Sep3)
@@ -482,7 +470,7 @@ mean_Sep<-data.frame(shape,extract(mean_Sep, shape, fun=mean, na.rm=T, touches=T
 mean_Sep$Sep<-mean_Sep$extract.mean_Sep..shape..fun...mean..na.rm...T..touches...TRUE.
 
 
-
+#Oct
 Oct2<-'chirps-v2.0_2002.10.tif' 
 Oct3<-'chirps-v2.0_2003.10.tif' 
 Oct4<-'chirps-v2.0_2004.10.tif' 
@@ -504,8 +492,6 @@ Oct19<-'chirps-v2.0_2019.10.tif'
 Oct20<-'chirps-v2.0_2020.10.tif' 
 Oct21<-'chirps-v2.0_2021.10.tif' 
 Oct22<-'chirps-v2.0_2022.10.tif' 
-#str_name<-'Population_density.tif' 
-
 
 Oct2<- raster(Oct2)
 Oct3<- raster(Oct3)
@@ -533,7 +519,7 @@ mean_Oct <- calc(mean_Oct, mean)
 mean_Oct<-data.frame(shape,extract(mean_Oct, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_Oct$Oct<-mean_Oct$extract.mean_Oct..shape..fun...mean..na.rm...T..touches...TRUE.
 
-
+#Nov
 Nov2<-'chirps-v2.0_2002.11.tif' 
 Nov3<-'chirps-v2.0_2003.11.tif' 
 Nov4<-'chirps-v2.0_2004.11.tif' 
@@ -555,7 +541,6 @@ Nov19<-'chirps-v2.0_2019.11.tif'
 Nov20<-'chirps-v2.0_2020.11.tif' 
 Nov21<-'chirps-v2.0_2021.11.tif' 
 Nov22<-'chirps-v2.0_2022.11.tif' 
-#str_name<-'Population_density.tif' 
 
 Nov2<- raster(Nov2)
 Nov3<- raster(Nov3)
@@ -583,7 +568,7 @@ mean_Nov <- calc(mean_Nov, mean)
 mean_Nov<-data.frame(shape,extract(mean_Nov, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_Nov$Nov<-mean_Nov$extract.mean_Nov..shape..fun...mean..na.rm...T..touches...TRUE.
 
-
+#Dec
 Dec2<-'chirps-v2.0_2002.12.tif' 
 Dec3<-'chirps-v2.0_2003.12.tif' 
 Dec4<-'chirps-v2.0_2004.12.tif' 
@@ -605,7 +590,6 @@ Dec19<-'chirps-v2.0_2019.12.tif'
 Dec20<-'chirps-v2.0_2020.12.tif' 
 Dec21<-'chirps-v2.0_2021.12.tif' 
 Dec22<-'chirps-v2.0_2022.12.tif' 
-#str_name<-'Population_density.tif' 
 
 Dec2<- raster(Dec2)
 Dec3<- raster(Dec3)
@@ -633,21 +617,18 @@ mean_Dec <- calc(mean_Dec, mean)
 mean_Dec<-data.frame(shape,extract(mean_Dec, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_Dec$Dec<-mean_Dec$extract.mean_Dec..shape..fun...mean..na.rm...T..touches...TRUE.
 
-#put in rainfall class data here
-
+#Subset each month to not include islands, as these are not included in final GADM shapefile analysis and have large amounts of missing data
 mean_jan <- subset(mean_jan, COUNTRY != "Cabo Verde")
 mean_jan <- subset(mean_jan, COUNTRY != "Mauritius")
 mean_jan <- subset(mean_jan, COUNTRY != "Seychelles")
 mean_jan <- subset(mean_jan, COUNTRY != "São Tomé and Príncipe")
 mean_jan <- subset(mean_jan, COUNTRY != "Comoros")
 
-
 mean_Feb <- subset(mean_Feb, COUNTRY != "Cabo Verde")
 mean_Feb <- subset(mean_Feb, COUNTRY != "Mauritius")
 mean_Feb <- subset(mean_Feb, COUNTRY != "Seychelles")
 mean_Feb <- subset(mean_Feb, COUNTRY != "São Tomé and Príncipe")
 mean_Feb <- subset(mean_Feb, COUNTRY != "Comoros")
-
 
 mean_Mar <- subset(mean_Mar, COUNTRY != "Cabo Verde")
 mean_Mar <- subset(mean_Mar, COUNTRY != "Mauritius")
@@ -661,21 +642,17 @@ mean_Apr <- subset(mean_Apr, COUNTRY != "Seychelles")
 mean_Apr <- subset(mean_Apr, COUNTRY != "São Tomé and Príncipe")
 mean_Apr <- subset(mean_Apr, COUNTRY != "Comoros")
 
-
 mean_May <- subset(mean_May, COUNTRY != "Cabo Verde")
 mean_May <- subset(mean_May, COUNTRY != "Mauritius")
 mean_May <- subset(mean_May, COUNTRY != "Seychelles")
 mean_May <- subset(mean_May, COUNTRY != "São Tomé and Príncipe")
 mean_May <- subset(mean_May, COUNTRY != "Comoros")
 
-
 mean_June <- subset(mean_June, COUNTRY != "Cabo Verde")
 mean_June <- subset(mean_June, COUNTRY != "Mauritius")
 mean_June <- subset(mean_June, COUNTRY != "Seychelles")
 mean_June <- subset(mean_June, COUNTRY != "São Tomé and Príncipe")
 mean_June <- subset(mean_June, COUNTRY != "Comoros")
-
-
 
 mean_July <- subset(mean_July, COUNTRY != "Cabo Verde")
 mean_July <- subset(mean_July, COUNTRY != "Mauritius")
@@ -689,13 +666,11 @@ mean_Aug <- subset(mean_Aug, COUNTRY != "Seychelles")
 mean_Aug <- subset(mean_Aug, COUNTRY != "São Tomé and Príncipe")
 mean_Aug <- subset(mean_Aug, COUNTRY != "Comoros")
 
-
 mean_Sep <- subset(mean_Sep, COUNTRY != "Cabo Verde")
 mean_Sep <- subset(mean_Sep, COUNTRY != "Mauritius")
 mean_Sep <- subset(mean_Sep, COUNTRY != "Seychelles")
 mean_Sep <- subset(mean_Sep, COUNTRY != "São Tomé and Príncipe")
 mean_Sep <- subset(mean_Sep, COUNTRY != "Comoros")
-
 
 mean_Oct <- subset(mean_Oct, COUNTRY != "Cabo Verde")
 mean_Oct <- subset(mean_Oct, COUNTRY != "Mauritius")
@@ -709,7 +684,6 @@ mean_Nov <- subset(mean_Nov, COUNTRY != "Seychelles")
 mean_Nov <- subset(mean_Nov, COUNTRY != "São Tomé and Príncipe")
 mean_Nov <- subset(mean_Nov, COUNTRY != "Comoros")
 
-
 mean_Dec <- subset(mean_Dec, COUNTRY != "Cabo Verde")
 mean_Dec <- subset(mean_Dec, COUNTRY != "Mauritius")
 mean_Dec <- subset(mean_Dec, COUNTRY != "Seychelles")
@@ -717,12 +691,7 @@ mean_Dec <- subset(mean_Dec, COUNTRY != "São Tomé and Príncipe")
 mean_Dec <- subset(mean_Dec, COUNTRY != "Comoros")
 
 
-
-
-
-
-
-
+#Subset dataframes
 mean_jan<-mean_jan[ , c('GID_2', 'NAME_2','extract.mean_jan..shape..fun...mean..na.rm...T..touches...TRUE.')]
 mean_Feb<-mean_Feb[ , c('GID_2', 'NAME_2','extract.mean_Feb..shape..fun...mean..na.rm...T..touches...TRUE.')]
 mean_Mar<-mean_Mar[ , c('GID_2', 'NAME_2','extract.mean_Mar..shape..fun...mean..na.rm...T..touches...TRUE.')]
@@ -738,8 +707,9 @@ mean_Dec<-mean_Dec[ , c('GID_2', 'NAME_2','extract.mean_Dec..shape..fun...mean..
 cl2test<-cl2test[ , c('GID_2', 'NAME_2_x', 'zonalcat')]
 
 
-
+#Bind monthly average and rainfall clusters into one data frame
 test<-cbind(mean_jan,mean_Feb,mean_Mar, mean_Apr, mean_May, mean_June,mean_July,mean_Aug,mean_Sep,mean_Oct,mean_Nov,mean_Dec,cl2test)
+#Change row names
 test$Jan<-test$extract.mean_jan..shape..fun...mean..na.rm...T..touches...TRUE.
 test$Feb<-test$extract.mean_Feb..shape..fun...mean..na.rm...T..touches...TRUE.
 test$Mar<-test$extract.mean_Mar..shape..fun...mean..na.rm...T..touches...TRUE.
@@ -755,39 +725,49 @@ test$Dec<-test$extract.mean_Dec..shape..fun...mean..na.rm...T..touches...TRUE.
 test$Zone<-test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.
 test$ADMN2_code<-test$GID_2
 test$ADMN2_name<-test$NAME_2
-
+# Load necessary libraries
 library(dplyr)
-datasets<-test[ , c('zonalcat', 'Jan','Feb','Mar','Apr','May', 'June', 'July', 'Aug','Sep','Oct','Nov','Dec')]
-df <- datasets  %>% 
+library(tidyr)
+library(wesanderson)
+library(RColorBrewer)
+
+# Select specific columns from the 'test' dataset
+datasets <- test[, c('zonalcat', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')]
+
+# Group data by 'zonalcat' and calculate the mean for each group
+df <- datasets %>%
   group_by(zonalcat) %>%
   summarise_all("mean")
+
+# Remove the 7th row from the dataframe
 df <- df[-7, ]
-library(tidyr)
-data_long <- gather(df, month, Rainfall, Jan:Dec, factor_key=TRUE)
+
+# Convert the dataset from wide to long format
+data_long <- gather(df, month, Rainfall, Jan:Dec, factor_key = TRUE)
 data_long
 
+# Use a color palette from the 'wesanderson' package
+test_palette <- wes_palette("FantasticFox1", n = 6, type = "continuous")
 
-library(wesanderson)
-test_palette<-wes_palette("FantasticFox1", n=6, type = c( "continuous"))
-
-ggplot(data_long, aes(x = month, y = Rainfall, group= zonalcat)) +
-  
-  geom_line(aes(color=zonalcat))+
-  geom_point(aes(color=zonalcat))+
-  scale_color_manual(values= test_palette) +
-  
+# Plot the data using ggplot2
+ggplot(data_long, aes(x = month, y = Rainfall, group = zonalcat)) +
+  geom_line(aes(color = zonalcat)) +
+  geom_point(aes(color = zonalcat)) +
+  scale_color_manual(values = test_palette) +
   labs(title = "Rainfall classes", x = "Month", y = "Monthly Atmospheric Precipitation (mm)") +
   theme(
     plot.title = element_text(size = 14),  # Adjust size of the plot title
-    axis.title = element_text(size = 14),axis.text = element_text(size = 10)    # Adjust size of axis titles
+    axis.title = element_text(size = 14),  # Adjust size of axis titles
+    axis.text = element_text(size = 10)    # Adjust size of axis text
   )
 
-plot(cl2test['zonalcat']) 
+# Plot 'zonalcat' column in the 'cl2test' dataset
+plot(cl2test['zonalcat'])
 
-library(RColorBrewer)
+# Use a ColorBrewer palette
 palette <- brewer.pal(6, "Paired")
 
-
+# Plot the data using ggplot2 with a different palette and increased element sizes
 compare <- data_long %>%
   ggplot(aes(x = month, y = Rainfall, group = zonalcat, color = zonalcat)) +
   scale_color_manual(values = palette) +
@@ -806,8 +786,7 @@ compare <- data_long %>%
 # Plot the graph
 print(compare)
 
-
-# Convert 'zonal_cat' based on 'Class' values using ifelse and convert to numeric
+# Convert 'zonalcat' based on 'Class' values using ifelse and convert to numeric
 cl2test$zonal_cat_numeric <- ifelse(cl2test$zonalcat == "Class 1", as.numeric("1"),
                                     ifelse(cl2test$zonalcat == "Class 2", as.numeric("2"),
                                            ifelse(cl2test$zonalcat == "Class 3", as.numeric("3"),
@@ -817,6 +796,7 @@ cl2test$zonal_cat_numeric <- ifelse(cl2test$zonalcat == "Class 1", as.numeric("1
 
 # Print the modified dataframe
 print(cl2test)
+
 # Extract the column you want to convert to raster
 column_to_raster <- cl2test$zonal_cat_numeric
 
@@ -826,8 +806,7 @@ raster_template <- raster(extent(cl2test), res = 0.1)  # You can adjust resoluti
 # Convert the column to raster
 rasterized_column <- rasterize(cl2test, raster_template, field = column_to_raster)
 
-# Plot the rasterized column
-library(RColorBrewer)
+# Plot the rasterized column using a color palette
 magma_like_palette <- brewer.pal(6, "Paired")
 
-plot(rasterized_column, col=magma_like_palette)
+plot(rasterized_column, col = magma_like_palette)
