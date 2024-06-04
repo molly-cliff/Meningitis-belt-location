@@ -47,30 +47,4 @@ save "weeklyincidencepoliomerge.dta", replace
 * Export the dataset to Excel
 export excel using "Weeklyincidencepoliomergetest.xlsx", firstrow(variables) replace
 
-clear
 
-* Use "annualincidencemissing.dta" and modify district_country values
-use "annualincidencemissing.dta"
-replace district_country = subinstr(district_country, "Democratic Republic of the Congo", "Democratic Republic Of The Congo", .)
-... (additional replace statements)
-
-* Save the modified dataset
-sort district_country
-save "annualincidencemissing.dta", replace
-
-clear
-
-* Use "DRC_polio_weekly.dta" and prepare for merging
-use "DRC_polio_weekly.dta"
-sort district_country
-
-* Merge with "annualincidencemissing.dta" and drop non-matching observations
-merge district_country using "annualincidencemissing.dta"
-drop if _merge == 1
-drop if _merge == 2
-
-* Save the merged dataset
-save "annualincidencemissingmerged.dta", replace
-
-* Export the dataset to Excel
-export excel using "annualincidencepoliomergetest.xlsx", firstrow(variables) replace

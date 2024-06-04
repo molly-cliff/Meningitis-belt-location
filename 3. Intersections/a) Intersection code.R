@@ -13,10 +13,9 @@ library(sf)
 
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/WHO POLIO SHAPEFILES/WHO POLIO SHAPEFILES/ADMN2_AFRO")
 ADMN2 <-read_sf(dsn = ".", layer = "ADM2_AFRO")
-
+# Set working directory and read GADM shapefile
 setwd("C:/Users/mvc32/Documents/Climate_meningitis_belt")
-#our gadm shapefile
-shape2 <-st_read("Shapefile_improved.shp")
+shape2 <- st_read("Shapefile_improved.shp")
 setwd("C:/Users/mvc32/Documents/Climate_meningitis_belt/Disease Data")
 ADMN2<-ADMN2[ , c("SHAPE_Leng", "SHAPE_Area", "geometry", "ADM2_NAME", "ADM1_NAME",
                   "ADM0_NAME")]
@@ -36,11 +35,9 @@ ADMN2$district_country <- stri_trans_totitle(ADMN2$district_countrykeep)
 filtered_shapefile2 <- ADMN2 %>%
   right_join( weeklyincidence_merge, by = "district_country")
 
-
+filtered_shapefile<-filtered_shapefile2[!duplicated(filtered_shapefile2[ , c("district_country")]),]
 #from here we have a list of the missing epidemics that match the who shapefile
 #we will use this to calculate the who shapefile district overlap with the gadm shapefile
-
-#TRY AND SEE WHY BLANKS ARE HERE AND FILL IN
 
 
 #gadmn shapefile is filtered to only look at countries with missing epidemics to reduce processing time
@@ -101,12 +98,12 @@ intersections$area_intersection <- st_area(intersections)
 
 intersections$district_countryshape <- intersections$district_countrykeep
 intersections<-intersections[ , c('GID_1','GID_0', 'GID_2','NAME_2'
-                                  ,'district_country','area_intersection','district_country_important')]
+                                  ,'district_country','area_intersection','district_country_important',"district_countryshape")]
 
 shapefile1$district_countryshape <- shapefile1$district_countrykeep
 shapefile1$area_original <- st_area(shapefile1)
 shapefile1<-shapefile1[ , c("ADM2_NAME.x","ADM1_NAME.x", "ADM0_NAME.x" ,'COUNTRY','district_countryshape'
-                            ,'area_original',"geometry.x" )]
+                                                    ,'area_original',"geometry.x" )]
 
 # Calculate the area of each original district in shapefile1
 intersections$district_countryshape <- intersections$district_country
@@ -132,7 +129,7 @@ filtered_intersections50 <-filtered_intersections50 [!duplicated(filtered_inters
 
 joined_shapefiles_test <- anti_join(joined_shapefiles, filtered_intersections50, by = c("district_country_important"))
 filtered_intersections30 <- joined_shapefiles_test[
-  joined_shapefiles_test$'area_intersection' >= 0.3 * joined_shapefiles_test$'area_original', ]
+ joined_shapefiles_test$'area_intersection' >= 0.3 * joined_shapefiles_test$'area_original', ]
 #joined_shapefiles$district_countryimportant<-joined_shapefiles$district_country_important
 
 filtered_intersections30 <-filtered_intersections30 [!duplicated(filtered_intersections30[ , c("district_country_important")]),]
@@ -149,44 +146,18 @@ result_df <- anti_join(shapefile1, filtered_intersections50, by = "district_coun
 
 #these are the ones we can't yet place
 result_df <- anti_join(result_df, filtered_intersections30, by = "district_countryshape")
+filtered_intersections50_subset <- filtered_intersections50[, -which(names(filtered_intersections50) == "district_country")]
+filtered_intersections50$district_country<-filtered_intersections50$district_countryimportant
+
+filtered_intersections30 <- filtered_intersections30[!duplicated(filtered_intersections30[, c("district_country_important")]), ]
+filtered_intersections30_subset <- filtered_intersections30[, -which(names(filtered_intersections50) == "district_country")]
 
 
-# Write data to Excel file
-write_xlsx(filtered_intersections50, file_path)
 library(writexl)
 write_xlsx(filtered_intersections50, "filtered_intersections50_weekly.xlsx")
 write_xlsx(filtered_intersections30, "filtered_intersections30_weekly.xlsx")
 
-
-
-
-# Any epidemics that we have not matched in Stata will be matched here
-#Files read in are, unmatched epidemics, who polio shapefile and our gadm shapefile
-# the who polio shapefile
-
-setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/WHO POLIO SHAPEFILES/WHO POLIO SHAPEFILES/ADMN2_AFRO")
-ADMN2 <-read_sf(dsn = ".", layer = "ADM2_AFRO")
-
-setwd("C:/Users/mvc32/Documents/Climate_meningitis_belt")
-#our gadm shapefile
-shape2 <-st_read("Shapefile_improved.shp")
-setwd("C:/Users/mvc32/Documents/Climate_meningitis_belt/Disease Data")
-ADMN2<-ADMN2[ , c("SHAPE_Leng", "SHAPE_Area", "geometry", "ADM2_NAME", "ADM1_NAME",
-                  "ADM0_NAME")]
-
-library(stringi)
-#  create district country variable which we will then match on
-#this variable is pasted from admn district and country
-ADMN2$district_countrykeep <- paste(ADMN2$ADM2_NAME, ADMN2$ADM0_NAME, sep = " ")
-ADMN2$district_countrykeep <- stri_trans_totitle(ADMN2$district_countrykeep)
-shape2$district_country <- paste(shape2$NAME_2, shape2$COUNTRY, sep = " ")
-ADMN2$district_country <- stri_trans_totitle(ADMN2$district_countrykeep)
-# join the who matched polio file to missing epidemics file
-# this is to give the shapefile value to the matched data
-
-
-#this part essentially repeats but for annual data
-setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt/Disease_data")
+# Repeat process for annual data
 file_path <- "annualreducedincidence.xlsx"
 
 #file_path <- "testingannual.xlsx"
@@ -256,7 +227,7 @@ intersections<-intersections[ , c('GID_1','GID_0', 'GID_2','NAME_2','district_co
 shapefile1$district_countryshape <- shapefile1$district_countrykeep
 shapefile1$area_original <- st_area(shapefile1)
 shapefile1<-shapefile1[ , c("ADM2_NAME.x","ADM1_NAME.x", "ADM0_NAME.x" ,'COUNTRY','district_country'
-                            ,'area_original',"geometry.x" )]
+,'area_original',"geometry.x" )]
 
 
 # Calculate the area of each original district in shapefile1
@@ -278,14 +249,18 @@ filtered_intersections50 <-filtered_intersections50 [!duplicated(filtered_inters
 filtered_intersections50 <-filtered_intersections50 [!duplicated(filtered_intersections50[ , c("district_countryimportant")]),]
 joined_shapefiles_test <- anti_join(joined_shapefiles, filtered_intersections50, by = c("district_countryimportant"))
 filtered_intersections30 <- joined_shapefiles_test[
-  joined_shapefiles_test$'area_intersection' >= 0.3 * joined_shapefiles_test$'area_original', ]
+joined_shapefiles_test$'area_intersection' >= 0.3 * joined_shapefiles_test$'area_original', ]
 filtered_intersections30 <-filtered_intersections30 [!duplicated(filtered_intersections30[ , c("district_countryimportant")]),]
 
 # Count the number of qualifying intersections
 num_overlapping_districts <- nrow(filtered_intersections50)
 filtered_intersections50$epidemic <- 1
 filtered_intersections30$epidemic <- 1
-library(writexl)
+filtered_intersections50 <- filtered_intersections50[, -which(names(filtered_intersections50) == "district_country")]
+filtered_intersections50$district_country<-filtered_intersections50$district_countryimportant
+filtered_intersections30 <- filtered_intersections30[, -which(names(filtered_intersections30) == "district_country")]
+filtered_intersections30$district_country<-filtered_intersections30$district_countryimportant
+
+ library(writexl)
 write_xlsx(filtered_intersections50, "filtered_intersections50_annual2.xlsx")
 write_xlsx(filtered_intersections30, "filtered_intersections30_annual.xlsx")
-
