@@ -50,98 +50,100 @@ Mar <- stack(mar)
 #new working data
 
 detach("package:R.utils", unload=TRUE)
-
+#crop and mask rasters for each month to the GADMN shapefile
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 shape <-read_sf(dsn = ".", layer = "Shapefile_improved")
 Jan<- crop(Jan, shape)
 Jan <- mask(Jan, shape)
-
+#then calculate the average AOD across month of interest and turn into a dataframe
 mean_jan <- calc(Jan, mean)
 mean_jan<-data.frame(shape,extract(mean_jan, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_jan$Jan<-mean_jan$extract.mean_jan..shape..fun...mean..na.rm...T..touches...TRUE
 
-
+#Do the same for each month: Feb
 Feb<- crop(Feb, shape)
 Feb <- mask(Feb, shape)
-
 mean_feb <- calc(Feb, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_feb<-data.frame(shape,extract(mean_feb, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_feb$Feb<-mean_feb$extract.mean_feb..shape..fun...mean..na.rm...T..touches...TRUE
 
+#Mar
 Mar<- crop(Mar, shape)
 Mar <- mask(Mar, shape)
-
 mean_mar <- calc(Mar, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_mar<-data.frame(shape,extract(mean_mar, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_mar$Mar<-mean_mar$extract.mean_mar..shape..fun...mean..na.rm...T..touches...TRUE
+
+#Apr
 Apr<- crop(Apr, shape)
 Apr <- mask(Apr, shape)
-
 mean_apr <- calc(Apr, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_apr<-data.frame(shape,extract(mean_apr, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_apr$Apr<-mean_apr$extract.mean_apr..shape..fun...mean..na.rm...T..touches...TRUE
+
+#May
 May<- crop(May, shape)
 May <- mask(May, shape)
-
 mean_may <- calc(May, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_may<-data.frame(shape,extract(mean_may, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_may$May<-mean_may$extract.mean_may..shape..fun...mean..na.rm...T..touches...TRUE
+
+#June
 June<- crop(June, shape)
 June <- mask(June, shape)
-
 mean_june <- calc(June, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_june<-data.frame(shape,extract(mean_june, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_june$June<-mean_june$extract.mean_june..shape..fun...mean..na.rm...T..touches...TRUE
+
+#July
 July<- crop(July, shape)
 July <- mask(July, shape)
 mean_july <- calc(July, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_july<-data.frame(shape,extract(mean_july, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_july$July<-mean_july$extract.mean_july..shape..fun...mean..na.rm...T..touches...TRUE
+
+#August
 Aug<- crop(Aug, shape)
 Aug <- mask(Aug, shape)
-
 mean_aug <- calc(Aug, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_aug<-data.frame(shape,extract(mean_aug, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_aug$Aug<-mean_aug$extract.mean_aug..shape..fun...mean..na.rm...T..touches...TRUE
+#Fill in gaps in AOD with 0
 mean_aug[is.na(mean_aug)] <- 0
+
+#Sep
 Sep<- crop(Sep, shape)
 Sep <- mask(Sep, shape)
-
 mean_sep <- calc(Sep, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_sep<-data.frame(shape,extract(mean_sep, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_sep$Sep<-mean_sep$extract.mean_sep..shape..fun...mean..na.rm...T..touches...TRUE
+#Fill in gaps in AOD with 0
 mean_sep[is.na(mean_sep)] <- 0
+
+#Oct
 Oct<- crop(Oct, shape)
 Oct <- mask(Oct, shape)
-
 mean_oct <- calc(Oct, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_oct<-data.frame(shape,extract(mean_oct, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_oct$Oct<-mean_oct$extract.mean_oct..shape..fun...mean..na.rm...T..touches...TRUE
+
+#Nov
 Nov<- crop(Nov, shape)
 Nov <- mask(Nov, shape)
-
 mean_nov <- calc(Nov, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_nov<-data.frame(shape,extract(mean_nov, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_nov$Nov<-mean_nov$extract.mean_nov..shape..fun...mean..na.rm...T..touches...TRUE
 
+
+#Dec
 Dec<- crop(Dec, shape)
 Dec <- mask(Dec, shape)
-
 mean_dec <- calc(Dec, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_dec<-data.frame(shape,extract(mean_dec, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_dec$Dec<-mean_dec$extract.mean_dec..shape..fun...mean..na.rm...T..touches...TRUE
 
+
+#Subset each month to not include islands, as these are not included in final GADM shapefile analysis and have large amounts of missing data
 mean_jan <- subset(mean_jan, COUNTRY != "Cabo Verde")
 mean_jan <- subset(mean_jan, COUNTRY != "Mauritius")
 mean_jan <- subset(mean_jan, COUNTRY != "Seychelles")
@@ -225,55 +227,44 @@ mean_dec <- subset(mean_dec, COUNTRY != "Comoros")
 
 
 
-#filter to the key parts
+#Filter mean data frame to key rows
 mean_jan<-mean_jan[ , c('GID_2', 'NAME_2','Jan')]
-
 mean_feb<-mean_feb[ , c('GID_2', 'NAME_2','Feb')]
-
-
 mean_mar<-mean_mar[ , c('GID_2', 'NAME_2','Mar')]
-
 mean_apr<-mean_apr[ , c('GID_2', 'NAME_2','Apr')]
-
 mean_may<-mean_may[ , c('GID_2', 'NAME_2','May')]
-
 mean_june<-mean_june[ , c('GID_2', 'NAME_2','June')]
-
 mean_july<-mean_july[ , c('GID_2', 'NAME_2','July')]
-
 mean_aug<-mean_aug[ , c('GID_2', 'NAME_2','Aug')]
-
 mean_sep<-mean_sep[ , c('GID_2', 'NAME_2','Sep')]
-
 mean_oct<-mean_oct[ , c('GID_2', 'NAME_2','Oct')]
-
 mean_nov<-mean_nov[ , c('GID_2', 'NAME_2','Nov')]
-
 mean_dec<-mean_dec[ , c('GID_2', 'NAME_2','Dec')]
-
 cl2test<-Aerocat[ , c('GID_2', 'NAME_2_x', 'zonalcat')]
-#write out into dataframe
+
+#Bind monthly average and AOD clusters into one data frame
 library(dplyr)
 test<-cbind(mean_jan,mean_feb,mean_mar, mean_apr, mean_may, mean_june,mean_july,mean_aug,mean_sep,mean_oct,mean_nov,mean_dec,cl2test)
-
+#Filter rows accordingly
 test<-test[ , c('NAME_2_x','zonalcat', 'Jan','Feb','Mar','Apr','May', 'June', 'July', 'Aug','Sep','Oct','Nov','Dec')]
-na_counts <- sapply(test, function(x) sum(is.na(x)))
 
 
 # Total number of NA values in the dataset
+na_counts <- sapply(test, function(x) sum(is.na(x)))
 total_na_count <- sum(na_counts)
 clean_data <- na.omit(test)
 na_counts <- sapply(clean_data, function(x) sum(is.na(x)))
-
-
-# Total number of NA values in the dataset
 total_na_count <- sum(na_counts)
-datasets<-clean_data[ , c('zonalcat', 'Jan','Feb','Mar','Apr','May', 'June', 'July', 'Aug','Sep','Oct','Nov','Dec')]
 
-df <- datasets  %>% 
+# Select specific columns from the dataset
+datasets <- clean_data[, c('zonalcat', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')]
+
+# Group data by 'zonalcat' and calculate the mean for each group
+df <- datasets %>%
   group_by(zonalcat) %>%
   summarise_all("mean")
 
+# Reclassify the 'zonalcat' column
 df$zonalcat <- gsub("Class 4", "Class 3", df$zonalcat)
 df$zonalcat <- gsub("Class 5", "Class 4", df$zonalcat)
 df$zonalcat <- gsub("Class 6", "Class 5", df$zonalcat)
@@ -281,37 +272,43 @@ df$zonalcat <- gsub("Class 7", "Class 6", df$zonalcat)
 df$zonalcat <- gsub("Class 8", "Class 7", df$zonalcat)
 df$zonalcat <- gsub("Class 9", "Class 8", df$zonalcat)
 
+# Load the 'tidyr' package
+library(tidyr)
 
-
-
- library(tidyr)
+# Reshape the data from wide to long format
 total3test_plot <- gather(df, Month, class, "Jan":"Dec", factor_key=TRUE)
 
+# Load necessary libraries for plotting
 library(wesanderson)
-library(RColorBrewer)  # Load the RColorBrewer package
+library(RColorBrewer)
 
 # Define the ColorBrewer palette
 palette <- brewer.pal(8, "Paired")
 
-# Plotting code
+# Plotting code using ggplot2
 compare <- total3test_plot %>%
   ggplot(aes(x = Month, y = class, group = zonalcat, color = zonalcat)) +
   scale_color_manual(values = palette) +
   geom_line(size = 1) +  # Adjust the size parameter for thicker lines
-  geom_point(size = 3) +   # Add points with a size parameter to control their size
+  geom_point(size = 3) + # Add points with a size parameter to control their size
   labs(y = "AOD", x = "Month", colour = "Class", title = "AOD classes") +
   theme(text = element_text(size = 12))
 
 # Plot the graph
 plot(compare)
 
+# Reclassify the 'zonalcat' column in the Aerocat dataset
 Aerocat$zonalcat <- gsub("Class 4", "Class 3", Aerocat$zonalcat)
 Aerocat$zonalcat <- gsub("Class 5", "Class 4", Aerocat$zonalcat)
 Aerocat$zonalcat <- gsub("Class 6", "Class 5", Aerocat$zonalcat)
 Aerocat$zonalcat <- gsub("Class 7", "Class 6", Aerocat$zonalcat)
 Aerocat$zonalcat <- gsub("Class 8", "Class 7", Aerocat$zonalcat)
 Aerocat$zonalcat <- gsub("Class 9", "Class 8", Aerocat$zonalcat)
+
+# Plot the 'zonalcat' column
 plot(Aerocat['zonalcat'])
+
+# Create a numeric column based on the 'zonalcat' classification
 Aerocat$zonal_cat_numeric <- ifelse(Aerocat$zonalcat == "Class 1", as.numeric("1"),
                                     ifelse(Aerocat$zonalcat == "Class 2", as.numeric("2"),
                                            ifelse(Aerocat$zonalcat == "Class 3", as.numeric("3"),
@@ -322,6 +319,7 @@ Aerocat$zonal_cat_numeric <- ifelse(Aerocat$zonalcat == "Class 1", as.numeric("1
                                                                               ifelse(Aerocat$zonalcat == "Class 8", as.numeric("8"),
                                                                                      ifelse(Aerocat$zonalcat == "Class 9", as.numeric("9"), NA)))))))))
 
+# Assign the numeric column to a variable
 column_to_raster <- Aerocat$zonal_cat_numeric
 
 # Create a raster template from the shapefile
@@ -330,8 +328,11 @@ raster_template <- raster(extent(Aerocat), res = 0.1)  # You can adjust resoluti
 # Convert the column to raster
 rasterized_column <- rasterize(Aerocat, raster_template, field = column_to_raster)
 
-# Plot the rasterized column
+# Plot the rasterized column using a color palette
 library(RColorBrewer)
+magma_like_palette <- brewer.pal(8, "Paired")
+
+plot(rasterized_column, col = magma_like_palette)
 magma_like_palette <- brewer.pal(8, "Paired")
 
 plot(rasterized_column, col=magma_like_palette)
