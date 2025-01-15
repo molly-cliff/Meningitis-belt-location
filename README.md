@@ -14,6 +14,6 @@ This repository contains R and Stata code used to create a logistic regression m
 
 5. [Figures/Graphs](https://github.com/molly-cliff/Meningitis-belt-location/tree/editing-branch/5.%20Figures%20and%20Graphs): R code to create Figure 1- seasonal cluster trends for [AOD](https://github.com/molly-cliff/Meningitis-belt-location/blob/main/5.%20Figures%20and%20Graphs/AOD%20cluster%20graph.R), [Rainfall](https://github.com/molly-cliff/Meningitis-belt-location/blob/main/5.%20Figures%20and%20Graphs/Rainfall%20cluster%20plots.R) and [Specific humidity](https://github.com/molly-cliff/Meningitis-belt-location/blob/main/5.%20Figures%20and%20Graphs/Humidity%20cluster%20graph.R) and Figure 2- [continental map of outbreaks](https://github.com/molly-cliff/Meningitis-belt-location/blob/main/5.%20Figures%20and%20Graphs/Epidemic%20Mapping.R)
 
-# Version
+# R Version
 
 This project was carried out using R version 4.3.1
