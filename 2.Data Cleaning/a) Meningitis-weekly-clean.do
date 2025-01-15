@@ -34,7 +34,7 @@ save "weeklyincidence.dta", replace
 // Correct district_country names
 replace district_country = "Addis Abeba Ethiopia" if district_country == "Bole 5 Ethiopia"
 replace district_country = "Nouadhibou Mauritania" if district_country == "Chami Mauritania"
-replace district_country = "Addis Ababa Ethiopia" if district_country == "Hakim Ethiopia"
+replace district_country = "Addis Abeba Ethiopia" if district_country == "Hakim Ethiopia"
 replace district_country = "Banikoara Benin" if district_country == "BANIKOARA Benin"
 replace district_country = "Gedeo Ethiopia" if district_country == "Birbirsa Kojowa Ethiopia"
 replace district_country = "Guji Ethiopia" if district_country == "Dima Ethiopia"
