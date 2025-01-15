@@ -15,9 +15,11 @@ library(pROC)
 library(wesanderson)
 library(InformationValue)
 library(raster)
-
+library(ggplot2)
+library(tidyverse)
+library(readxl)
 # Set working directory
-setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
+setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt/Population density weighting")
 
 # Read in all the environmental data
 Pop_density2000<- read_sf(dsn = ".", layer = "Pop_density2000")
@@ -25,12 +27,13 @@ Pop_density2005<- read_sf(dsn = ".", layer = "Pop_density2005")
 Pop_density2010<- read_sf(dsn = ".", layer = "Pop_density2010")
 Pop_density2015<- read_sf(dsn = ".", layer = "Pop_density2015")
 Pop_density2020<- read_sf(dsn = ".", layer = "Pop_density2020")
+setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 
-windspeed <- read_sf(dsn = ".", layer = "windspeed9classes")
+windspeed <- read_sf(dsn = ".", layer = "windspeed6classes")
 enviromentalsurfaces <- read_sf(dsn = ".", layer = "Landcoverbilinear")
 Rainfallcat <- read_sf(dsn = ".", layer = "rainfallbilinear")
 Aerocat <- read_sf(dsn = ".", layer = "Aero9clusters")
-Humiditycat <- read_sf(dsn = ".", layer = "Absolutehumidity11clusters")
+Humiditycat <- read_sf(dsn = ".", layer = "Specific-hum-10cluster")
 
 
 
@@ -249,10 +252,6 @@ sum(is.na(final_data$nw_lnd_))
 
 
 
-# Load necessary libraries
-library(dplyr)
-library(readxl)
-
 # Set working directory
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt/Disease_data")
 
@@ -290,7 +289,7 @@ annualincidence_merge <- annualincidence_merge %>%
 
 # Merge final dataset with annual epidemic data
 merged_data <- merge(merged_data, annualincidence_merge, by = "code", all = TRUE)
-library(tidyverse)
+
 # Create new epidemic column (binary) based on weekly and annual epidemic data
 merged_data <- merged_data %>%
   mutate(epidemic = ifelse(epidemic_annual == 1 | epidemic_weekly == 1, 1, 0)) %>%
@@ -311,9 +310,6 @@ sum(is.na(final_data$rainfallzone))
 exclude_countries <- c("Cabo Verde", "Mauritius", "Seychelles", "São Tomé and Príncipe")
 final_data <- subset(final_data, !(COUNTRY.x %in% exclude_countries))
 
-
-library(dplyr)
-library(readxl)
 
 # Clean data and set factors
 merged_data$Aero3 <- as.factor(merged_data$aerozone)
@@ -336,11 +332,6 @@ merged_data[is.na(merged_data)] <- 0
 merged_data <- merged_data[merged_data$COUNTRY.x != 0, ]
 dataset_merge <- merged_data
 
-# Calculate average latitude and cosine of latitude
-#sf_object <- st_as_sf(merged_data)
-#average_latitudes <- lapply(sf_object %>% {sapply(st_geometry(.), st_coordinates)} %>% {lapply(., as.data.frame)} %>% {lapply(., dplyr::select, Y)} %>% {lapply(., dplyr::rename, lat = Y)}, function(coords_df) {
-#  mean(coords_df$lat)
-#})
 
 sf_object <- st_as_sf(merged_data)
 average_latitudes <- st_geometry(sf_object) %>%
@@ -365,9 +356,6 @@ merged_data$cosine_latitude <- weight
 merged_data <- merged_data[, c("epidemic", "rainfall3", "Aero3", "Pop_density2000", 
                                
                                "Pop_density2005","Pop_density2010","Pop_density2015","Pop_density2020", "humidity3", "windspeed3", "Land_category", "cosine_latitude")]
-
-# Update factor levels
-
 
 
 
@@ -412,15 +400,7 @@ sum(is.na(merged_data$epidemic))
 
 
 
-library(caret)
-library(ggplot2)
 
-
-
-library(caret)
-library(ggplot2)
-library(caret)
-library(ggplot2)
 
 # Function to calculate F1 score
 F1_Score <- function(actual, predicted) {
@@ -781,4 +761,5 @@ specificity<-  specificity(merged_data$epidemic, predicted_classes)
 
 cat("Sensitivity:", sensitivity)
 cat("Specificity:", specificity)
+
 
