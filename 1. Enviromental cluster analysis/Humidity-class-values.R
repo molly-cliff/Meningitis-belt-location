@@ -14,7 +14,6 @@ surface_pressure<-rotate(surface_pressure)
 dew_temp = stack("dew_temp.nc")
 dew_temp<-rotate(dew_temp)
 
-setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 
 # Constants
 a1 <- 611.2
@@ -36,7 +35,7 @@ qsat <- function(Td, ps) {
   return((Rdry / Rvap) * es_Td / (ps - ((1 - (Rdry / Rvap)) * es_Td)))
 }
 
-# Example usage
+# Use to calculate specific humidity
 Td <- dew_temp  # Dew point temperature in Kelvin
 ps <- surface_pressure  # Surface pressure in Pa
 specific_humidity <- qsat(Td, ps)
@@ -137,15 +136,6 @@ cl2testraster2<-cl2testraster[ , c('COUNTRY.x','NAME_1.x', 'GID_2','NAME_2.x','z
 total3test<-cl2testraster2[!duplicated(cl2testraster2[ , c("GID_2")]),]
 
 table(total3test$zonalcat)
-
-
-
-
-
-
-
-
-
 st_write(total3test, "Specific-hum-10cluster.shp",append=FALSE)
 
 
@@ -201,15 +191,6 @@ cl2testraster2<-cl2testraster[ , c('COUNTRY.x','NAME_1.x', 'GID_2','NAME_2.x','z
 total3test<-cl2testraster2[!duplicated(cl2testraster2[ , c("GID_2")]),]
 
 table(total3test$zonalcat)
-
-
-
-
-
-
-
-
-
 st_write(total3test, "Specific-hum-9cluster.shp",append=FALSE)
 
 
@@ -263,15 +244,6 @@ cl2testraster2<-cl2testraster[ , c('COUNTRY.x','NAME_1.x', 'GID_2','NAME_2.x','z
 total3test<-cl2testraster2[!duplicated(cl2testraster2[ , c("GID_2")]),]
 
 table(total3test$zonalcat)
-
-
-
-
-
-
-
-
-
 st_write(total3test, "Specific-hum-8cluster.shp",append=FALSE)
 
 
@@ -292,8 +264,6 @@ r_cluster <- mask(r_cluster, shape)
 plot(r_cluster)
 r_cluster <- mask(r_cluster, shape)
 plot(hc)
-
-
 
 #extracts most common cluster value for each district in africa, most common as 
 #opposed to average as clusters are distinct from each other
@@ -324,6 +294,7 @@ cl2test <- subset(cl2test, COUNTRY != "Comoros")
 cl2test_missing <- st_as_sf(cl2test)
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 table(cl2test$zonalcat)
+# Cluster names replaced here as have less than 50 ADMN2 districts with cluster
 rows_to_replace <- cl2test$zonalcat %in% c("Class 8")
 cl2test$zonalcat[rows_to_replace] <- "Class 9"
 
@@ -344,18 +315,6 @@ table(total3test$zonalcat)
 
 st_write(total3test, "Specific-hum-11cluster.shp",append=FALSE)
 
-
-
-
-
-
-
-
-
-
-
-
-
 #set seed makes this reproducible as kmeans clustering can vary
 set.seed(5)
 kmeans_result <- kmeans(km, centers = 12)
@@ -372,10 +331,6 @@ r_cluster <- mask(r_cluster, shape)
 #plot(r_cluster)
 r_cluster <- mask(r_cluster, shape)
 plot(hc)
-
-
-
-
 
 #extracts most common cluster value for each district in africa, most common as 
 #opposed to average as clusters are distinct from each other
@@ -397,8 +352,6 @@ cl2test$zonalcat  <- with(cl2test, ifelse(extract.r_cluster..shape..fun...modal.
                                                                                                   ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==10 , 'Class 9',
                                                                                                          ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==11 , 'Class 10',
                                                                                                                 ifelse(extract.r_cluster..shape..fun...modal..na.rm...TRUE. ==12 , 'Class 4',0)))))))))))))
-#why are there so many NAs? data quality? how to fill in
-
 
 cl2test <- subset(cl2test, COUNTRY != "Cabo Verde")
 cl2test <- subset(cl2test, COUNTRY != "Mauritius")
@@ -409,12 +362,7 @@ cl2test <- subset(cl2test, COUNTRY != "Comoros")
 cl2test_missing <- st_as_sf(cl2test)
 sum(is.na(cl2test$extract.r_cluster..shape..fun...modal..na.rm...TRUE.))
 table(cl2test$zonalcat)
-
-
 rows_with_missing <- cl2test[is.na(cl2test$zonalcat), ]
-
-
-# here we should think about class distribution
 
 cl2testraster <- merge(cl2test,shape,by="GID_2")
 cl2testraster <- st_as_sf(cl2testraster)
