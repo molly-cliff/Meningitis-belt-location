@@ -8,47 +8,31 @@ library(sf)
 library(beepr)
 library(raster)
 
-# List all .tif files in the "Rainfall" directory
+
 rastlist <- list.files(path = "Rainfall", pattern='.tif$', all.files=TRUE, full.names=TRUE)
 
-# Read and stack all the raster files
+
 allrasters <- stack(rastlist)
 
-# Aggregate the raster data by a factor of 2 using the mean function
 allrasters2 <- aggregate(allrasters, fact=2, fun = mean)
-
-# Perform bilinear interpolation to resample the raster
 r_resampled <- resample(allrasters, allrasters2, method = "bilinear")
-
-# Read the shapefile for Africa
 shape <- read_sf(dsn = ".", layer = "Shapefile_improved")
 
 # Crop and mask the resampled raster to the shape of Africa
 allrasters <- crop(r_resampled, shape)
 allrasters <- mask(allrasters, shape)
-
-# Replace NA values in the aggregated raster with 0
-allrasters2[is.na(allrasters2)] <- 0
+allrasters[is.na(allrasters2)] <- 0
 
 # Perform Principal Component Analysis (PCA) on the raster data
 rpc <- rasterPCA(allrasters2, center = TRUE)
 
-# Print summary of the PCA model
 summary(rpc$model)
-
-# Stack the PCA result into a raster stack
 raster_stack <- stack(rpc$map)
-
-# Select the first 22 components from the raster stack
 files_stack <- raster_stack[[1:22]]
 
-# Assign the selected components back to allrasters
+
 allrasters <- files_stack
-
-# Convert the raster stack to a matrix for K-means clustering
 km <- as.matrix(allrasters)
-
-# Fill NA values in the matrix with the mean value of the matrix
 num_na <- sum(is.na(km))
 km[is.na(km)] <- mean(km, na.rm = TRUE)
 num_na <- sum(is.na(km))
@@ -63,10 +47,8 @@ for (i in 1:15) {
 # Plot the WSS vs. number of clusters
 plot(1:15, wss, type = "b", pch = 15, frame = FALSE, xlab = "Number of Clusters (k)", ylab = "Total Within Sum of Squares", main = "Rainfall K-means Cluster Testing")
 
-# Highlight points 6-9 in blue
 points(6:9, wss[6:9], col = "blue", pch = 15)
 
-# Add a legend to the plot
 legend("topright", legend = c("WSS", "Tested k-means clusters 6-9"), col = c("black", "blue"), pch = c(15, 15))
 
 # Perform K-means clustering with 6 centers
