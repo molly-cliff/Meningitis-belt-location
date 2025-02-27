@@ -6,6 +6,10 @@ library(terra)
 library(tiff)
 library(RStoolbox)
 library(sf)
+library(wesanderson)
+library(RColorBrewer)
+
+
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 Aerocat <-read_sf(dsn = ".", layer = "Aero9clusters")
 library(purrr)
@@ -272,15 +276,12 @@ df$zonalcat <- gsub("Class 7", "Class 6", df$zonalcat)
 df$zonalcat <- gsub("Class 8", "Class 7", df$zonalcat)
 df$zonalcat <- gsub("Class 9", "Class 8", df$zonalcat)
 
-# Load the 'tidyr' package
+# Load the 'tidyr' package, loaded later due to package clashing ussyes
 library(tidyr)
 
 # Reshape the data from wide to long format
 total3test_plot <- gather(df, Month, class, "Jan":"Dec", factor_key=TRUE)
 
-# Load necessary libraries for plotting
-library(wesanderson)
-library(RColorBrewer)
 
 # Define the ColorBrewer palette
 palette <- brewer.pal(8, "Paired")
