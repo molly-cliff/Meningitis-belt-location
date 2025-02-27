@@ -6,7 +6,6 @@ library(terra)
 library(tiff)
 library(RStoolbox)
 library(sf)
-library(wesanderson)
 library(RColorBrewer)
 
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
@@ -263,23 +262,6 @@ df <- df[-7, ]
 data_long <- gather(df, month, Rainfall, Jan:Dec, factor_key = TRUE)
 data_long
 
-# Use a color palette from the 'wesanderson' package
-test_palette <- wes_palette("FantasticFox1", n = 6, type = "continuous")
-
-# Plot the data using ggplot2
-ggplot(data_long, aes(x = month, y = Rainfall, group = zonalcat)) +
-  geom_line(aes(color = zonalcat)) +
-  geom_point(aes(color = zonalcat)) +
-  scale_color_manual(values = test_palette) +
-  labs(title = "Rainfall classes", x = "Month", y = "Monthly Atmospheric Precipitation (mm)") +
-  theme(
-    plot.title = element_text(size = 14),  # Adjust size of the plot title
-    axis.title = element_text(size = 14),  # Adjust size of axis titles
-    axis.text = element_text(size = 10)    # Adjust size of axis text
-  )
-
-# Plot 'zonalcat' column in the 'cl2test' dataset
-plot(cl2test['zonalcat'])
 
 # Use a ColorBrewer palette
 palette <- brewer.pal(6, "Paired")
