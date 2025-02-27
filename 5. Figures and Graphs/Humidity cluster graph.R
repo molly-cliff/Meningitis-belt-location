@@ -8,6 +8,7 @@ library(tiff)
 library(RStoolbox)
 library(sf)
 
+
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 #this is essentially reading in already created layers and joining together
 shape <-read_sf(dsn = ".", layer = "Shapefile_improved")
@@ -17,7 +18,6 @@ Humiditycat <- read_sf(dsn = ".", layer = "Specific-hum-10cluster")
 cl2test<-Humiditycat 
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt/Humidity")
 
-setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 
 surface_pressure = stack("surface_pressure.nc")
 surface_pressure<-rotate(surface_pressure)
@@ -222,14 +222,10 @@ mean_dec <- subset(mean_dec, COUNTRY != "Comoros")
 
 
 mean_jan<-mean_jan[ , c('GID_2', 'NAME_2','Jan')]
-
 mean_feb<-mean_feb[ , c('GID_2', 'NAME_2','Feb')]
-
 mean_mar<-mean_mar[ , c('GID_2', 'NAME_2','Mar')]
 mean_apr<-mean_apr[ , c('GID_2', 'NAME_2','Apr')]
-
 mean_may<-mean_may[ , c('GID_2', 'NAME_2','May')]
-
 mean_june<-mean_june[ , c('GID_2', 'NAME_2','June')]
 mean_july<-mean_july[ , c('GID_2', 'NAME_2','July')]
 mean_aug<-mean_aug[ , c('GID_2', 'NAME_2','Aug')]
@@ -282,28 +278,14 @@ compare <- data_long %>%
 
 # Plot the graph
 print(compare)
-library(dplyr)
-library(raster)
-library(ggplot2)
-library(reshape2)
-library(terra)
-library(tiff)
-library(RStoolbox)
-library(sf)
+
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 #this is essentially reading in already created layers and joining together
-
-
-
-
 
 shape2 <-st_read("Shapefile_improved.shp")
 #shape2$district_country <- paste(shape2$NAME_2, shape2$COUNTRY, sep = " ")
 Humiditycat$district_country <- paste(Humiditycat$NAME_2_x, Humiditycat$COUNTRY_x, sep = " ")
 #create district intersection for weighting later
-
-
-
 
 plot(Humiditycat['zonalcat'])
 Humiditycat$zonal_cat_numeric <- ifelse(Humiditycat$zonalcat == "Class 1", as.numeric("1"),
