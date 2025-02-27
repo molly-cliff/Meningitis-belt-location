@@ -43,8 +43,6 @@ plot(1:20, wss, type = "b", pch = 19, frame = FALSE, xlab = "Number of Clusters 
 # Uncomment the following line to add a line for the potential elbow point
 # abline(v = which(diff(wss) == max(diff(wss))) + 1, col = "red", lty = 2)
 
-library(raster)
-
 
 set.seed(1)
 
