@@ -12,33 +12,21 @@ library(raster)
 # Set working directory
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 
-# List and stack windspeed netCDF files
+
 rastlist <- list.files(path = "windspeed", pattern='.nc$', full.names= TRUE)
 allrasters <- stack(rastlist)
 allrastersrotate <- rotate(allrasters)
-
-# List and stack rainfall TIFF files
 rastlist <- list.files(path = "Rainfall", pattern='.tif$', all.files= T, full.names= T)
 rainfall <- stack(rastlist)
 
-# Read in the coordinate reference system (CRS) from the rainfall data
+
 africa_crs <- crs(rainfall)
 allrastersrotate <- projectRaster(allrastersrotate, crs = africa_crs)
-
-# Reduce the resolution of the windspeed raster
 allrastersrotate2 <- aggregate(allrastersrotate, fact=5, fun = mean)
-
-# Resample the windspeed raster
 r_resampledrotate <- resample(allrastersrotate, allrastersrotate2, method = "bilinear")
-
-# Read the shapefile
 shape <- read_sf(dsn = ".", layer = "Shapefile_improved")
-
-# Crop and mask the windspeed raster to the shapefile boundaries
 allrastersrotate <- crop(r_resampledrotate, shape)
 allrastersrotate <- mask(allrastersrotate, shape)
-
-# Replace NA values in the raster with 0
 allrastersrotate[is.na(allrastersrotate)] <- 0
 
 # Perform PCA on the raster data for dimensionality reduction
