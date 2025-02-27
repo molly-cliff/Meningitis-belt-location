@@ -17,29 +17,22 @@ str_name <- 'gpw_v4_population_density_rev11_2000_2pt5_min.tif'
 imported_raster <- raster(str_name) # Import raster file
 Population_density <- imported_raster 
 
-# Read shapefile containing the Africa continent boundaries
-shape <- read_sf(dsn = ".", layer = "Shapefile_improved")
 
-# Transform shapefile to match the CRS of the raster
+shape <- read_sf(dsn = ".", layer = "Shapefile_improved")
 shape <- st_transform(shape, crs(Population_density))
 
-# Crop population density raster to Africa continent shapefile
 Population_density <- crop(Population_density, extent(shape))
 Population_density <- mask(Population_density, shape)
-
-# Extract average population density for each district and turn it into a dataframe
 Pop_density <- data.frame(shape, raster::extract(Population_density, shape, fun = mean, na.rm = TRUE, touches = TRUE))
-
-# Rename the extracted column
 Pop_density$Pop_density <- Pop_density$raster..extract.Population_density..shape..fun...mean..na.rm...TRUE..
 
-# Merge datasets, select certain columns, and remove duplicate rows
+
 Pop_density <- merge(Pop_density, shape, by = "GID_2")
 Pop_density <- st_as_sf(Pop_density)
 Pop_density <- Pop_density[, c('COUNTRY.x', 'NAME_1.x', 'GID_2', 'NAME_2.y', 'Pop_density')]
 Pop_density2000 <- Pop_density[!duplicated(Pop_density[, c("GID_2")]),]
 
-# Write the results to a shapefile
+
 st_write(Pop_density2000, "Pop_density2000.shp", append = FALSE)
 
 # Repeat the process for the year 2005
