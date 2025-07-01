@@ -152,7 +152,16 @@ filtered_intersections50$district_country<-filtered_intersections50$district_cou
 filtered_intersections30 <- filtered_intersections30[!duplicated(filtered_intersections30[, c("district_country_important")]), ]
 filtered_intersections30_subset <- filtered_intersections30[, -which(names(filtered_intersections50) == "district_country")]
 
+filtered_intersections50$district_country <- NULL
+filtered_intersections30$district_country <- NULL
 
+if ("district_country_important" %in% colnames(filtered_intersections50)) {
+  names(filtered_intersections50)[names(filtered_intersections50) == "district_country_important"] <- "district_country"
+}
+
+if ("district_country_important" %in% colnames(filtered_intersections30)) {
+  names(filtered_intersections30)[names(filtered_intersections30) == "district_country_important"] <- "district_country"
+}
 library(writexl)
 write_xlsx(filtered_intersections50, "filtered_intersections50_weekly.xlsx")
 write_xlsx(filtered_intersections30, "filtered_intersections30_weekly.xlsx")
@@ -261,6 +270,15 @@ filtered_intersections50$district_country<-filtered_intersections50$district_cou
 filtered_intersections30 <- filtered_intersections30[, -which(names(filtered_intersections30) == "district_country")]
 filtered_intersections30$district_country<-filtered_intersections30$district_countryimportant
 
- library(writexl)
+filtered_intersections50$district_country <- NULL
+filtered_intersections30$district_country <- NULL
+
+if ("district_country_important" %in% colnames(filtered_intersections50)) {
+  names(filtered_intersections50)[names(filtered_intersections50) == "district_country_important"] <- "district_country"
+}
+
+if ("district_country_important" %in% colnames(filtered_intersections30)) {
+  names(filtered_intersections30)[names(filtered_intersections30) == "district_country_important"] <- "district_country"
+}
 write_xlsx(filtered_intersections50, "filtered_intersections50_annual2.xlsx")
 write_xlsx(filtered_intersections30, "filtered_intersections30_annual.xlsx")
