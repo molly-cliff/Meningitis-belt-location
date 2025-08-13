@@ -1,12 +1,13 @@
-# Load necessary libraries
-library(dplyr)
-library(readxl)
-library(RStoolbox)
-library(writexl)
-library(sf)
+# Load libraries
 library(tidyverse)
+
+# Spatial analysis
+library(sf)
 library(lwgeom)
-library(stringi)
+library(raster)
+library(RStoolbox)
+
+# Modelling
 library(caret)
 library(brglm)
 library(brglm2)
@@ -15,14 +16,15 @@ library(car)
 library(MASS)
 library(brms)
 library(pROC)
-library(wesanderson)
 library(InformationValue)
-library(raster)
 library(lmtest)
+
+# Utilities
+library(readxl)
+library(writexl)
+library(wesanderson)
 library(RColorBrewer)
-library(ggplot2)
-library(reshape2) 
-library(corrplot) 
+library(corrplot)
 
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 
