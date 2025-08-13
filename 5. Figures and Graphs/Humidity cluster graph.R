@@ -7,7 +7,7 @@ library(terra)
 library(tiff)
 library(RStoolbox)
 library(sf)
-
+library(RColorBrewer)
 
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 #this is essentially reading in already created layers and joining together
