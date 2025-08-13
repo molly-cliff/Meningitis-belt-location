@@ -72,66 +72,60 @@ Oct <- rtesthum[[c(10, 22, 34, 46, 58, 70, 82, 94, 106, 118, 130, 142, 154, 166,
 Nov <- rtesthum[[c(11, 23, 35, 47, 59, 71, 83, 95, 107, 119, 131, 143, 155, 167, 179, 191, 203, 215, 227, 239, 251)]]
 Dec <- rtesthum[[c(12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168, 180, 192, 204, 216, 228, 240, 252)]]
 #calcuating humidity average for each month
+
 mean_jan <- calc(Jan, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_jan<-data.frame(shape,extract(mean_jan, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_jan$Jan<-mean_jan$extract.mean_jan..shape..fun...mean..na.rm...T..touches...TRUE
+
 mean_feb <- calc(Feb, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_feb<-data.frame(shape,extract(mean_feb, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_feb$Feb<-mean_feb$extract.mean_feb..shape..fun...mean..na.rm...T..touches...TRUE
+
 mean_mar <- calc(Mar, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_mar<-data.frame(shape,extract(mean_mar, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_mar$Mar<-mean_mar$extract.mean_mar..shape..fun...mean..na.rm...T..touches...TRUE
+
 mean_apr <- calc(Apr, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_apr<-data.frame(shape,extract(mean_apr, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_apr$Apr<-mean_apr$extract.mean_apr..shape..fun...mean..na.rm...T..touches...TRUE
+
 mean_may <- calc(May, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_may<-data.frame(shape,extract(mean_may, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_may$May<-mean_may$extract.mean_may..shape..fun...mean..na.rm...T..touches...TRUE
+
 mean_june <- calc(June, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_june<-data.frame(shape,extract(mean_june, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_june$June<-mean_june$extract.mean_june..shape..fun...mean..na.rm...T..touches...TRUE
 
 mean_july <- calc(July, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_july<-data.frame(shape,extract(mean_july, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_july$July<-mean_july$extract.mean_july..shape..fun...mean..na.rm...T..touches...TRUE
 
 
 mean_aug <- calc(Aug, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_aug<-data.frame(shape,extract(mean_aug, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_aug$Aug<-mean_aug$extract.mean_aug..shape..fun...mean..na.rm...T..touches...TRUE
 
 
 
 mean_sep <- calc(Sep, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_sep<-data.frame(shape,extract(mean_sep, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_sep$Sep<-mean_sep$extract.mean_sep..shape..fun...mean..na.rm...T..touches...TRUE
 
 
 
 mean_oct <- calc(Oct, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_oct<-data.frame(shape,extract(mean_oct, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_oct$Oct<-mean_oct$extract.mean_oct..shape..fun...mean..na.rm...T..touches...TRUE
 
 
 mean_nov <- calc(Nov, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_nov<-data.frame(shape,extract(mean_nov, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_nov$Nov<-mean_nov$extract.mean_nov..shape..fun...mean..na.rm...T..touches...TRUE
 
 
 
 mean_dec <- calc(Dec, mean)
-#detach("package:R.utils", unload=TRUE)
 mean_dec<-data.frame(shape,extract(mean_dec, shape, fun=mean, na.rm=T, touches=TRUE))
 mean_dec$Dec<-mean_dec$extract.mean_dec..shape..fun...mean..na.rm...T..touches...TRUE
 #filter layers
