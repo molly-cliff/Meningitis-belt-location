@@ -1,66 +1,81 @@
+
+library(ggplot2)
+library(mgcv)
+library(reshape2)
+library(caret)
+library(sf)
+library(readxl)
+library(gridExtra)
+library(haven)
+library(tidyverse)
+library(RStoolbox)
+library(pROC)
 library(raster)
 library(terra)
+library(stringr)
 library(sf)
-library(RStoolbox)
+library(readxl)
+library(lubridate)
+library(dplyr)
+
+
+
+
+
+path <- "~/INLA project/temperatuture"
+files <- list.files(path, pattern = "nc4$", full.names = TRUE)
+
+# Filter out duplicate files with (1), (2), etc. in their names
+files <- files[!grepl("\\([0-9]+\\)", files)]
+
+# Read as SpatRaster
+r <- rast(files)
+setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
+shape2 <- read_sf(dsn = ".", layer = "Shapefile_improved")
+# Summary of raster layers
+summary_df <- data.frame(
+  Layer = names(r),
+  Min = sapply(1:nlyr(r), function(i) min(minmax(r[[i]])[1], na.rm = TRUE)),
+  Max = sapply(1:nlyr(r), function(i) max(minmax(r[[i]])[2], na.rm = TRUE))
+)
+print(summary_df)
+print(names(r))
+
+# Check and align CRS between raster and shapefile
+if (!identical(crs(r), crs(vect(shape2)))) {
+  message("CRS mismatch - Reprojecting raster to match vector")
+  r <- project(r, crs(vect(shape2)))
+} else {
+  message("CRS aligned")
+}
+start_date <- ymd("2003-01-01") 
+date_seq <- seq(start_date, by = "1 month", length.out = nlyr(r))
+layer_names <- paste0("temp_", year(date_seq), "_", sprintf("%02d", month(date_seq)))
+names(r) <- layer_names
+print(names(r))
+# Crop and mask
+allrasters <- mask(crop(r, vect(shape2)), vect(shape2))
+
+
+
+
+# Reduction of dimensionality of data using PCA
+rpc <- rasterPCA(allrasters)
+raster_stack <- stack(rpc$map)
+
+summary(rpc$model)
+raster_stack <- stack(rpc$map)
+files_stack <- raster_stack[[1:3]]
+
+
+
 library(cluster)
 library(clusterCrit)
 
-setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
+km <- as.matrix(files_stack)
+km_mean <- mean(km, na.rm = TRUE)
+km[is.na(km)] <- km_mean
 
-surface_pressure = stack("surface_pressure.nc")
-surface_pressure<-rotate(surface_pressure)
-dew_temp = stack("dew_temp.nc")
-dew_temp<-rotate(dew_temp)
-
-
-# Constants
-a1 <- 611.2
-a3 <- 17.67
-T0 <- 273.15
-a4 <- 29.65
-Rdry <- 287  # J/kg/K
-Rvap <- 461.5  # J/kg/K
-
-
-# Function to calculate saturation water vapor pressure (es)
-es <- function(Td) {
-  return(a1 * exp(a3 * (Td - T0) / (Td - a4)))
-}
-
-# Function to calculate saturation specific humidity (qsat)
-qsat <- function(Td, ps) {
-  es_Td <- es(Td)
-  return((Rdry / Rvap) * es_Td / (ps - ((1 - (Rdry / Rvap)) * es_Td)))
-}
-
-# Use to calculate specific humidity
-Td <- dew_temp  # Dew point temperature in Kelvin
-ps <- surface_pressure  # Surface pressure in Pa
-specific_humidity <- qsat(Td, ps)
-print(specific_humidity)
-
-
-shape <-read_sf(dsn = ".", layer = "Shapefile_improved")
-allrasters <- crop(specific_humidity, shape)
-allrasters <- mask(allrasters, shape)
-allrasters [is.na(allrasters)] <- 0
-
-#reduction of dimensionality of data
-rpc <- rasterPCA(allrasters)
-summary(rpc$model)
-raster_stack <- stack(rpc$map)
-
-
-test <- raster_stack[[1]]
-test2 <- raster_stack[[2]]
-files_stack <- stack(test,test2)
-files_stack<-mask(files_stack, shape)
-#extract k means for africa, to create 20 different clusters of rainfall
-
-km<-as.matrix(files_stack)
-num_na <- sum(is.na(km))
-km[is.na(km)] <- mean(km, na.rm = TRUE)
-num_na <- sum(is.na(km))
 
 #------------------------------------------------------------
 # 1. Prepare data
@@ -81,8 +96,7 @@ sil_mean    <- numeric(length(k_range))
 sil_median  <- numeric(length(k_range))
 sil_no_out  <- numeric(length(k_range))
 CH_index    <- numeric(length(k_range))
-DB_index    <- numeric(length(k_range))
-Dunn_index  <- numeric(length(k_range))
+
 
 #------------------------------------------------------------
 # 3. Helper function to detect outline cluster (very high silhouette)
@@ -97,7 +111,7 @@ detect_outline_cluster <- function(sil_values) {
 #------------------------------------------------------------
 # 4. Loop through all k-values
 #------------------------------------------------------------
-set.seed(3)
+set.seed(42)
 
 for (i in seq_along(k_range)) {
   
@@ -109,14 +123,14 @@ for (i in seq_along(k_range)) {
   # Elbow method (total WSS)
   elbow_wss[i] <- sum(km_res$withinss)
   
-  #  Silhouette (sample if too large)
-   if (nrow(km) > 10000) {
-     idx <- sample(nrow(km), 10000)
-   sil <- silhouette(km_res$cluster[idx], dist(km[idx, ]))
-    } else {
-    sil <- silhouette(km_res$cluster, dist(km))
-   }
-
+  # Silhouette (sample if too large)
+  # if (nrow(km) > 4000) {
+  #   idx <- sample(nrow(km), 4000)
+  #   sil <- silhouette(km_res$cluster[idx], dist(km[idx, ]))
+  # } else {
+  #   sil <- silhouette(km_res$cluster, dist(km))
+  # }
+  sil <- silhouette(km_res$cluster, dist(km))
   sil_vals <- sil[, 3]
   sil_mean[i]   <- mean(sil_vals)
   sil_median[i] <- median(sil_vals)
@@ -132,11 +146,9 @@ for (i in seq_along(k_range)) {
   
   # Other cluster validity indices (using clusterCrit)
   crit <- intCriteria(as.matrix(km), km_res$cluster,
-                      c("Calinski_Harabasz", "Davies_Bouldin", "Dunn"))
+                      c("Calinski_Harabasz"))
   
   CH_index[i]   <- crit$calinski_harabasz
-  DB_index[i]   <- crit$davies_bouldin
-  Dunn_index[i] <- crit$dunn
   
   cat("Finished k =", k, "\n")
 }
@@ -150,9 +162,7 @@ results <- data.frame(
   silhouette_mean  = sil_mean,
   silhouette_median= sil_median,
   silhouette_no_outline = sil_no_out,
-  CalinskiHarabasz = CH_index,
-  DaviesBouldin    = DB_index,
-  Dunn             = Dunn_index
+  CalinskiHarabasz = CH_index
 )
 
 print(results)
@@ -161,67 +171,58 @@ print(results)
 # 6. Plot key indicators
 #------------------------------------------------------------
 
+
+
 par(mfrow=c(1,2))
 
 # Elbow
 plot(k_range, elbow_wss, type="b", pch=19,
-     xlab="k", ylab="Total Within-Cluster Sum of Squares (WCSS)", main="Specific Humidity Elbow Curve")
+     xlab="k", ylab="Total Within-Cluster Sum of Squares (WCSS)", main="Temperature Elbow Curve")
 
-# Silhouette (mean)
-#plot(k_range, sil_mean, type="b", pch=19,
-#     xlab="k", ylab="Mean Silhouette", main="Silhouette Mean (biased)")
 
 # Silhouette without outline cluster
 plot(k_range, sil_no_out, type="b", pch=19, 
      xlab="k", ylab="Mean Silhouette",
-     main="Specific Humidity Silhouette Score")
-
-# Calinski–Harabasz
-#plot(k_range, CH_index, type="b", pch=19,
-#    xlab="k", ylab="CH Index",
-#   main="Calinski–Harabasz")
+     main="Temperature Silhouette Score")
 
 par(mfrow=c(1,1))
 
 
-#####
 
 
-set.seed(3)
+set.seed(42)
 
-kmeans_result <- kmeans(km, centers =8,nstart = 25, iter.max = 300)
+# Perform K-means clustering with 6 centers
+kmeans_result <- kmeans(km, centers = 10, nstart = 25, iter.max = 300)
 cluster_labels <- kmeans_result$cluster
 
 
-
-similarity_matrix <- dist( kmeans_result$centers)
+# Calculate similarity matrix and perform hierarchical clustering
+similarity_matrix <- dist(kmeans_result$centers)
 hc <- hclust(similarity_matrix)
-reordered_labels <- cutree(hc,8) 
+reordered_labels <- cutree(hc, 10) 
 cluster_labels <- reordered_labels[cluster_labels]
-cl = raster(files_stack)
-cl[] = cluster_labels 
-
-r_cluster <- setValues(cl, cluster_labels)
-plot(r_cluster)
-r_cluster <- mask(r_cluster, shape)
 plot(hc)
-
-
-cl2test<-data.frame(shape,raster::extract(r_cluster, shape, fun=modal, na.rm = TRUE))
-table(cl2test$raster..extract.r_cluster..shape..fun...modal..na.rm...TRUE.)
-
-
+# Assign cluster labels to raster
+cl <- raster(files_stack)
+cl[] = cluster_labels 
+r_cluster <- setValues(cl, cluster_labels)
+r_cluster <- mask(r_cluster, shape2)
+plot(r_cluster)
+# Plot the clustered raster
 
 cl2test<-data.frame(shape2, raster::extract(r_cluster, shape2, fun=modal, na.rm = TRUE))
 cl2test$zonaltest<-cl2test$raster..extract.r_cluster..shape2..fun...modal..na.rm...TRUE.
-cl2test$zonalcat <- with(cl2test, ifelse(zonaltest == 1, 'Class 2', 
-                                         ifelse(zonaltest == 2, 'Class 7', 
-                                                ifelse(zonaltest == 3, 'Class 4',
-                                                       ifelse(zonaltest == 4, 'Class 8', 
-                                                              ifelse(zonaltest == 5, 'Class 5',
-                                                                     ifelse(zonaltest == 6, 'Class 6',
-                                                                            ifelse(zonaltest == 7, 'Class 1',
-                                                                                                 ifelse(zonaltest == 8, 'Class 3',0)))))))))
+cl2test$zonalcat <- with(cl2test, ifelse(zonaltest == 1, 'Class 3', 
+                                         ifelse(zonaltest == 2, 'Class 9', 
+                                                ifelse(zonaltest == 3, 'Class 8',
+                                                       ifelse(zonaltest == 4, 'Class 7', 
+                                                              ifelse(zonaltest == 5, 'Class 4',
+                                                                     ifelse(zonaltest == 6, 'Class 1',
+                                                                            ifelse(zonaltest == 7, 'Class 5',
+                                                                                   ifelse(zonaltest == 8, 'Class 2',
+                                                                                          ifelse(zonaltest == 9, 'Class 6',
+                                                                                                 ifelse(zonaltest == 10, 'Class 10',0)))))))))))
 
 cl2test <- subset(cl2test, COUNTRY != "Cabo Verde")
 cl2test <- subset(cl2test, COUNTRY != "Mauritius")
@@ -238,4 +239,4 @@ cl2testraster2<-cl2testraster[ , c('COUNTRY.x','NAME_1.x', 'GID_2','NAME_2.x','z
 total3test<-cl2testraster2[!duplicated(cl2testraster2[ , c("GID_2")]),]
 
 table(total3test$zonalcat)
-st_write(total3test, "humidity_test8_clusters.shp",append=FALSE)
+st_write(total3test, "temperature_10_clusters.shp",append=FALSE)
