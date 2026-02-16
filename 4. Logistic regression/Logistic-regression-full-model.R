@@ -1,46 +1,45 @@
-# Load libraries
-library(tidyverse)
-
-# Spatial analysis
+# Load necessary libraries
+library(dplyr)
+library(RStoolbox)
+library(writexl)
 library(sf)
 library(lwgeom)
-library(raster)
-library(RStoolbox)
-
-# Modelling
+library(stringi)
 library(caret)
 library(brglm)
 library(brglm2)
 library(pscl)
 library(car)
-library(MASS)
 library(brms)
 library(pROC)
-library(InformationValue)
-library(lmtest)
-
-# Utilities
-library(readxl)
-library(writexl)
 library(wesanderson)
-library(RColorBrewer)
-library(corrplot)
+library(InformationValue)
+library(raster)
 
+# Set working directory
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt")
 
 # Read in all the environmental data
 Pop_density <- read_sf(dsn = ".", layer = "Population_density")
-windspeed <- read_sf(dsn = ".", layer = "windspeed6classes")
+windspeed <- read_sf(dsn = ".", layer = "windspeed5clusterstest")
 enviromentalsurfaces <- read_sf(dsn = ".", layer = "Landcoverbilinear")
-Rainfallcat <- read_sf(dsn = ".", layer = "rainfallbilinear")
-Aerocat <- read_sf(dsn = ".", layer = "Aero9clusters")
-Humiditycat <- read_sf(dsn = ".", layer = "Specific-hum-10cluster")
+Rainfallcat <- read_sf(dsn = ".", layer = "rainfall6clusterstest")
+Aerocat <- read_sf(dsn = ".", layer = "aerotest_10clusters9")
+Humiditycat <- read_sf(dsn = ".", layer = "humidity_test8_clusters")
+
+
+
+
+
 
 # Correct names
 Aerocat$aerozone <- Aerocat$zonalcat
 Humiditycat$Humidityzone <- Humiditycat$zonalcat
 Rainfallcat$rainfallzone <- Rainfallcat$zonalcat
 windspeed$windspeedzone <- windspeed$zonalcat
+
+
+
 
 
 # Disable s2 usage for spatial operations
@@ -54,14 +53,20 @@ Humiditycat <- as.data.frame(Humiditycat)
 
 
 
+# Create a 'code' column for joining datasets
+create_code <- function(df, name_col, gid_col) {
+  df$code <- paste(df[[name_col]], df[[gid_col]])
+  return(df)
+}
 
-#create code in r in which to join all the enviromental data together
-Rainfallcat$code <- paste(Rainfallcat$NAME_2_x, Rainfallcat$GID_2)
-Aerocat$code <- paste(Aerocat$NAME_2_x, Aerocat$GID_2)
-Humiditycat$code <- paste(Humiditycat$NAME_2_x, Humiditycat$GID_2)
-windspeed$code <- paste(windspeed$NAME_2_x, windspeed$GID_2)
-Pop_density$code <- paste(Pop_density$NAME_2_, Pop_density$GID_2)
-enviromentalsurfaces$code <- paste(enviromentalsurfaces$NAME_2_, enviromentalsurfaces$GID_2)
+Rainfallcat <- create_code(Rainfallcat, "NAME_2_x", "GID_2")
+Aerocat <- create_code(Aerocat, "NAME_2_x", "GID_2")
+Humiditycat <- create_code(Humiditycat, "NAME_2_x", "GID_2")
+windspeed <- create_code(windspeed, "NAME_2_x", "GID_2")
+Pop_density <- create_code(Pop_density, "NAME_2_", "GID_2")
+enviromentalsurfaces <- create_code(enviromentalsurfaces, "NAME_2_", "GID_2")
+
+
 
 # Join based on matching 'code' column
 total3test <- merge(Aerocat, Rainfallcat, by = c("code", "code"), all.x = TRUE)
@@ -87,6 +92,10 @@ final_data <- final_data[!duplicated(final_data$GID_2.x), ]
 
 # Correct column name for windspeed
 final_data$windspeed <- final_data$zonalcat
+
+
+
+
 
 # Read in shapefile of Africa
 shape2 <- st_read("Shapefile_improved.shp")
@@ -212,10 +221,14 @@ sum(is.na(final_data$nw_lnd_))
 
 
 
+# Load necessary libraries
+library(dplyr)
+library(readxl)
 
+# Set working directory
 setwd("C:/Users/mvc32/OneDrive - University of Cambridge/Documents/Climate_meningitis_belt/Disease_data")
 
-# Define special countries, these only have ADMN1 rather than ADMN2 so are treated seperately and readded in
+# Define special countries
 special_countries <- c("Libya", "Western Sahara", "Lesotho", "Comoros")
 
 # Read in weekly epidemic data
@@ -249,13 +262,28 @@ annualincidence_merge <- annualincidence_merge %>%
 
 # Merge final dataset with annual epidemic data
 merged_data <- merge(merged_data, annualincidence_merge, by = "code", all = TRUE)
-#library(tidyverse)
+library(tidyverse)
 # Create new epidemic column (binary) based on weekly and annual epidemic data
 merged_data <- merged_data %>%
   mutate(epidemic = ifelse(epidemic_annual == 1 | epidemic_weekly == 1, 1, 0)) %>%
   replace_na(list(epidemic = 0))
 
+# Select final columns and remove duplicates
+final_columns <- c("COUNTRY.x", "code", "NAME_2.x", "rainfallzone", "Humidityzone", 
+                   "aerozone", "windspeedzone", "Pp_dnst", "nw_lnd_", "epidemic", 
+                   "district_country", "geometry.y")
+final_data <- merged_data[ , final_columns]
 
+# Check for missing values in final data (optional)
+sum(is.na(final_data$rainfallzone))
+
+# Exclude certain countries based on data quality (optional, if not done earlier)
+exclude_countries <- c("Cabo Verde", "Mauritius", "Seychelles", "São Tomé and Príncipe")
+final_data <- subset(final_data, !(COUNTRY.x %in% exclude_countries))
+
+
+library(dplyr)
+library(readxl)
 
 # Clean data and set factors
 merged_data$Aero3 <- as.factor(merged_data$aerozone)
@@ -279,7 +307,10 @@ merged_data <- merged_data[merged_data$COUNTRY.x != 0, ]
 dataset_merge <- merged_data
 
 # Calculate average latitude and cosine of latitude
-
+#sf_object <- st_as_sf(merged_data)
+#average_latitudes <- lapply(sf_object %>% {sapply(st_geometry(.), st_coordinates)} %>% {lapply(., as.data.frame)} %>% {lapply(., dplyr::select, Y)} %>% {lapply(., dplyr::rename, lat = Y)}, function(coords_df) {
+#  mean(coords_df$lat)
+#})
 
 sf_object <- st_as_sf(merged_data)
 average_latitudes <- st_geometry(sf_object) %>%
@@ -294,13 +325,19 @@ weight <- cos(merged_data$average_latitude * (pi / 180))
 
 # merged_data now has average_latitude and weight columns
 merged_data$cosine_latitude <- weight
+#merged_data$average_latitude <- unlist(average_latitudes)
 
+#weight <- cos(merged_data$average_latitude*(pi/180))
+
+#merged_data$cosine_latitude <- cos(merged_data$average_latitude)
 
 # Select relevant columns for analysis
 merged_data <- merged_data[, c("epidemic", "rainfall3", "Aero3", "Pp_dnst", "humidity3", "windspeed3", "Land_category", "cosine_latitude")]
 
 # Update factor levels
-#Relabelling as we assigned smaller clusters in k-means analysis to nearest cluster
+
+
+
 
 sum(is.na(merged_data$rainfall3))
 sum(is.na(merged_data$humidity3))
@@ -312,13 +349,9 @@ sum(is.na(merged_data$epidemic))
 
 
 
-merged_data$Aero3 <- gsub("Class 4", "Class 3", merged_data$Aero3)
-merged_data$Aero3 <- gsub("Class 5", "Class 4", merged_data$Aero3)
-merged_data$Aero3 <- gsub("Class 6", "Class 5", merged_data$Aero3)
-merged_data$Aero3 <- gsub("Class 7", "Class 6", merged_data$Aero3)
-merged_data$Aero3 <- gsub("Class 8", "Class 7", merged_data$Aero3)
-merged_data$Aero3 <- gsub("Class 9", "Class 8", merged_data$Aero3)
 
+merged_data$Aero3 <- gsub("Class 9", "Class 8", merged_data$Aero3)
+merged_data$Aero3 <- gsub("Class 10", "Class 9", merged_data$Aero3)
 
 
 
@@ -332,7 +365,18 @@ sum(is.na(merged_data$windspeedzone))
 sum(is.na(merged_data$Land_category))
 sum(is.na(merged_data$epidemic))
 
+#min_cos <- min(merged_data$cosine_latitude)
+#max_cos <- max(merged_data$cosine_latitude)
 
+# Scale the cosine latitude to the range [0, 1]
+#merged_data$scaled_cos_latitude <- (merged_data$cosine_latitude - min_cos) / (max_cos - min_cos)
+
+#merged_data$scaled_cos_latitude <- merged_data$scaled_cos_latitude +1
+
+
+
+library(caret)
+library(ggplot2)
 
 
 
@@ -363,13 +407,6 @@ model2 <- glm(epidemic ~ rainfall3,
 
 summary(model2)
 
-model2 <- glm(epidemic ~ Aero3,
-              data = merged_data, 
-              family = "binomial",
-              weights = merged_data$cosine_latitude,method = "brglmFit")
-
-summary(model2)
-
 model2 <- glm(epidemic ~ Land_category,
               data = merged_data, 
               family = "binomial",
@@ -377,30 +414,12 @@ model2 <- glm(epidemic ~ Land_category,
 
 summary(model2)
 
+model2 <- glm(epidemic ~ windspeed3,
+              data = merged_data, 
+              family = "binomial",
+              weights = merged_data$cosine_latitude,method = "brglmFit")
 
-# Print the results
-print(model_results)
-
-categorical_variables <- c("Aero3", "humidity3", "rainfall3", "Land_category","windspeed3")
-# Initialize a data frame to store chi-square test results
-chi_square_results <- data.frame(Variable = character(), ChiSquare = numeric(), DF = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
-
-# Perform chi-square test for each variable
-for (variable in categorical_variables) {
-  contingency_table <- table(merged_data[[variable]], merged_data$epidemic)
-  chi_test <- chisq.test(contingency_table)
-  chi_square_results <- rbind(chi_square_results, data.frame(
-    Variable = variable,
-    ChiSquare = chi_test$statistic,
-    DF = chi_test$parameter,
-    PValue = round(chi_test$p.value, 40)
-  ))
-}
-
-# Print the results
-print(chi_square_results)
-
-
+summary(model2)
 
 
 
@@ -418,7 +437,7 @@ F1_Score <- function(actual, predicted) {
 }
 
 # Define a range of weights for the minority class (0 to 1)
-weights <- seq(0, 1, length.out = 300)
+weights <- seq(0.2,1, length.out = 50)
 
 # Initialize vectors to store F1 scores and weights
 f1_scores <- numeric(length(weights))
@@ -426,7 +445,7 @@ f1_scores <- numeric(length(weights))
 # Iterate over each weight and train logistic regression model
 for (i in seq_along(weights)) {
   # Fit logistic regression model with specified weight for minority class
-  model <- glm(epidemic ~ Aero3 + humidity3 + rainfall3 +windspeed3 +Land_category,
+  model <- glm(epidemic ~ Aero3 + humidity3 + rainfall3 +windspeed3 +Land_category, 
                data = merged_data, 
                family = "binomial",
                weights = ifelse(merged_data$epidemic == 1, weights[i], 1),
@@ -445,7 +464,8 @@ for (i in seq_along(weights)) {
 # Find the optimum weight that maximizes the F1 score
 optimum_weight <- weights[which.max(f1_scores)]
 max_f1_score <- max(f1_scores)
-optimum_weight <-0.8725
+
+#optimum_weight <-0.8725
 nonepidemicweight<-1-optimum_weight
 
 # Plot F1 scores against weights
@@ -460,6 +480,64 @@ ggplot(df, aes(x = weights, y = f1_scores)) +
 
 
 
+epsilon <- 0.01
+f1_threshold <- (1 - epsilon) * max_f1_score
+
+epsilon_optimal_weights <- df$weights[df$f1_scores >= f1_threshold]
+epsilon_weight <- min(epsilon_optimal_weights)
+
+epsilon_weight
+
+epsilon_optimal_weights
+set.seed(123)
+weights <- seq(0.2, 0.9, length.out = 50)  # avoid extremes
+
+sens <- spec <- diff_ss <- numeric(length(weights))
+
+for (i in seq_along(weights)) {
+  w_ep <- weights[i]           # weight for epidemic cases
+  w_nonep <- 1 - weights[i]    # complementary weight for non-epidemic cases
+  
+  model <- glm(
+    epidemic ~ Aero3 + humidity3 + rainfall3 + windspeed3 + Land_category,
+    data = merged_data,
+    family = "binomial",
+    weights = ifelse(merged_data$epidemic == 1, w_ep, w_nonep),
+    method = "brglmFit"
+  )
+  
+  probs <- predict(model, merged_data, type = "response")
+  pred <- ifelse(probs > 0.4, 1, 0)
+  
+  tp <- sum(merged_data$epidemic == 1 & pred == 1)
+  tn <- sum(merged_data$epidemic == 0 & pred == 0)
+  fp <- sum(merged_data$epidemic == 0 & pred == 1)
+  fn <- sum(merged_data$epidemic == 1 & pred == 0)
+  
+  sens[i] <- ifelse(tp + fn > 0, tp / (tp + fn), NA)
+  spec[i] <- ifelse(tn + fp > 0, tn / (tn + fp), NA)
+  diff_ss[i] <- abs(sens[i] - spec[i])
+}
+
+
+
+# Remove NA entries
+valid_idx <- which(!is.na(diff_ss))
+
+# Find the index of the minimum among valid entries
+min_idx <- valid_idx[which.min(diff_ss[valid_idx])]
+
+# Balanced weight
+balanced_weight <- weights[min_idx]
+balanced_weight
+
+
+
+optimum_weight <-0.842
+nonepidemicweight<-1-optimum_weight
+#merged_data<-merged_data %>%
+# filter(!( Land_category %in% c("Water bodies")))
+
 # Check the length of the weights vector
 length(ifelse(merged_data$epidemic == 1, optimum_weight, nonepidemicweight))
 
@@ -472,31 +550,44 @@ merged_data$weightswithcosine <- merged_data$weights * merged_data$cosine_latitu
 merged_data$humidity3 <- as.factor(merged_data$humidity3)
 merged_data$Aero3 <- as.factor(merged_data$Aero3)
 merged_data$rainfall3 <- as.factor(merged_data$rainfall3)
+merged_data$windspeed3 <- as.factor(merged_data$windspeed3)
+merged_data$Land_category <- as.factor(merged_data$Land_category)
+
+
+
 # Check the levels of the factor to understand its current levels
 levels(merged_data$humidity3)
-merged_data$humidity3 <- relevel(merged_data$humidity3, ref = "Class 9")
+merged_data$humidity3 <- relevel(merged_data$humidity3, ref = "Class 3")
 merged_data$Aero3 <- relevel(merged_data$Aero3, ref = "Class 2")
 merged_data$rainfall3 <- relevel(merged_data$rainfall3, ref = "Class 2")
 #first model, weighted full regression
-model <- glm(epidemic ~ ., data = merged_data, family = binomial, method = "brglmFit")
+model <- glm(epidemic ~ Aero3 + humidity3 + rainfall3 + windspeed3 + Land_category, data = merged_data, family = binomial, method = "brglmFit", weights =merged_data$weightswithcosine )
+vif(model)
+merged_data$pred_full <- predict(model, type = "response")
 
+roc_full <- roc(merged_data$epidemic, merged_data$pred_full)
+auc_full <- auc(roc_full)
 
+auc_full
 
 options(scipen=999)
 
 summary(model)
-
+library(pscl)
+library(car)
+# McFadden’s R2,In practice, values over 0.40 indicate that a model fits the data very well.
 pscl::pR2(model)["McFadden"]
 #Variable Importance
 caret::varImp(model)
 #VIF values of each variable in the model to see if multicollinearity is a problem:
 car::vif(model)
-
+library(brms)
 vif_values <- vif(model)
 #these are predictions to test if the model is ok
 #predict on whole dataset
 predicted<-predict(model, merged_data, type="response")
 
+library(InformationValue)
 #find optimal cutoff probability to use to maximize accuracy
 optimal <- optimalCutoff(merged_data$epidemic, predicted)[1]
 optimal
@@ -508,7 +599,12 @@ conf_matrix_table <- table(Actual = merged_data$epidemic, Predicted = predicted_
 print(conf_matrix_table)
 
 
+
+#calculate sensitivity
 sensitivity(merged_data$epidemic, predicted)
+
+
+#calculate specificity
 specificity(merged_data$epidemic, predicted)
 
 
@@ -518,7 +614,9 @@ misClassError(merged_data$epidemic, predicted, threshold=optimal)
 plotROC(merged_data$epidemic, predicted)
 
 
-#trying model without weighted variables in
+
+
+#trying an unweighted model
 
 test_merge <-merged_data [ , c("epidemic", "rainfall3"  ,"Aero3",    
                                "humidity3", "windspeed3", "Land_category")]
@@ -534,12 +632,13 @@ pscl::pR2(model)["McFadden"]
 caret::varImp(model)
 #VIF values of each variable in the model to see if multicollinearity is a problem:
 car::vif(model)
-
+library(brms)
 vif_values <- vif(model)
 #these are predictions to test if the model is ok
 #predict on whole dataset
 predicted<-predict(model, merged_data, type="response")
 
+library(InformationValue)
 #find optimal cutoff probability to use to maximize accuracy
 optimal <- optimalCutoff(merged_data$epidemic, predicted)[1]
 optimal
@@ -570,26 +669,37 @@ plotROC(merged_data$epidemic, predicted)
 #now trying to do a backwards model, unweighted
 #weighting seemed to increase all variable singificance
 
-
+library(MASS)
 
 set.seed(76)
-backwards_test<-step(model,direction="backward",trace=FALSE)
+backwards_test<-step(model,direction="backward",trace=1)
 options(scipen=999)
 
 summary(backwards_test)
-
+library(pscl)
+library(car)
 # McFadden’s R2,In practice, values over 0.40 indicate that a model fits the data very well.
 pscl::pR2(backwards_test)["McFadden"]
+
 #Variable Importance
 caret::varImp(backwards_test)
 #VIF values of each variable in the model to see if multicollinearity is a problem:
 car::vif(backwards_test)
-
+library(brms)
 #vif_values <- vif(backwards_test)
+
+
+
+AIC_null <- AIC(model)
+
+
+
+
 
 #Step 4: Use the Model to Make Predictions
 predicted<-predict(backwards_test, merged_data, type="response")
 
+library(InformationValue)
 #find optimal cutoff probability to use to maximize accuracy
 optimal <- optimalCutoff(merged_data$epidemic, predicted)[1]
 optimal
@@ -614,6 +724,25 @@ specificity(merged_data$epidemic, predicted)
 misClassError(merged_data$epidemic, predicted, threshold=optimal)
 #plot the ROC curve
 plotROC(merged_data$epidemic, predicted)
+mod_drop_land <- glm(
+  epidemic ~ rainfall3 + Aero3 + humidity3 + windspeed3,
+  data = merged_data,
+  weights = merged_data$weightswithcosine,
+  family = binomial,
+  method = "brglmFit"
+)
+
+# Likelihood Ratio Test
+lrtest(model, mod_drop_land)
+
+# AUC comparison
+merged_data$pred_drop_land <- predict(mod_drop_land, type = "response")
+auc_drop_land <- auc(roc(merged_data$epidemic, merged_data$pred_drop_land))
+
+auc_full
+auc_drop_land
+
+AIC_null <- AIC(mod_drop_land)
 
 #now testing to see what the best model is using likelihood ratio test
 library(lmtest)
@@ -621,97 +750,185 @@ lrt_result <- lrtest(model, backwards_test)
 
 # Display the likelihood ratio test result
 print(lrt_result)
-glm(formula = epidemic ~ rainfall3 + Aero3 + humidity3 + windspeed3, 
-    family = binomial, data = merged_data, method = "brglmFit")
-
-
-model2 <- glm(epidemic ~ rainfall3 + Aero3  + windspeed3 + Land_category, data = merged_data, weights = merged_data$weightswithcosine, family = binomial, method = "brglmFit")
-model3 <- glm(epidemic ~ rainfall3 + Aero3  + humidity3 + Land_category, data = merged_data, weights = merged_data$weightswithcosine, family = binomial, method = "brglmFit")
-model4 <- glm(epidemic ~ rainfall3 + windspeed3  + humidity3, data = merged_data,  weights = merged_data$weightswithcosine,family = binomial, method = "brglmFit")
 
 
 
-model5 <- glm(epidemic ~ windspeed3 + Aero3  + humidity3 + Land_category, data = merged_data, weights = merged_data$weightswithcosine, family = binomial, method = "brglmFit")
-model6 <- glm(epidemic ~ windspeed3 + Aero3  + humidity3 + rainfall3, data = merged_data, weights = merged_data$weightswithcosine, family = binomial, method = "brglmFit")
-#library(lmtest)
-lrt_result2 <- lrtest( backwards_test,model2)
-print(lrt_result2)
-lrt_result3 <- lrtest( backwards_test,model3)
-print(lrt_result3)
+mod_drop_rain <- glm(
+  epidemic ~ Aero3 + humidity3 + windspeed3 + Land_category,
+  data = merged_data,
+  weights = merged_data$weightswithcosine,
+  family = binomial,
+  method = "brglmFit"
+)
 
-lrt_result4 <- lrtest( backwards_test,model4)
-print(lrt_result4)
+lrtest(model, mod_drop_rain)
 
-lrt_result5 <- lrtest( backwards_test,model5)
-print(lrt_result5)
+merged_data$pred_drop_rain <- predict(mod_drop_rain, type = "response")
+auc_drop_rain <- auc(roc(merged_data$epidemic, merged_data$pred_drop_rain))
 
-lrt_result6 <- lrtest( backwards_test,model6)
-print(lrt_result6)
+auc_drop_rain
 
+mod_drop_aero <- glm(
+  epidemic ~ rainfall3 + humidity3 + windspeed3 + Land_category,
+  data = merged_data,
+  weights = merged_data$weightswithcosine,
+  family = binomial,
+  method = "brglmFit"
+)
 
+lrtest(model, mod_drop_aero)
 
-summary(model4)
-# McFadden’s R2,In practice, values over 0.40 indicate that a model fits the data very well.
-ors <- exp(coef(model4))
-cis <- exp(confint.default(model4))
-cbind(ors, cis)
-pscl::pR2(model4)["McFadden"]
+merged_data$pred_drop_aero <- predict(mod_drop_aero, type = "response")
+auc_drop_aero <- auc(roc(merged_data$epidemic, merged_data$pred_drop_aero))
 
-LL_model <- logLik(model4)
-LL_null <- logLik(update(model4, . ~ 1))  # Null model
-McFaddens_R2 <- 1 - (LL_model / LL_null)
-
-McFaddens_R2
-
-#Variable Importance
-caret::varImp(model4)
-#VIF values of each variable in the model to see if multicollinearity is a problem:
-car::vif(model4)
-
-vif_values <- vif(model4)
-
-#Step 4: Use the Model to Make Predictions
-predicted<-predict(model4, merged_data, type="response")
+auc_drop_aero
 
 
-#find optimal cutoff probability to use to maximize accuracy
-optimal <- optimalCutoff(merged_data$epidemic, predicted)[1]
-optimal
 
 
-optimal<-optimalCutoff(merged_data$epidemic, predicted, optimiseFor = "misclasserror", returnDiagnostics = FALSE)
+mod_drop_humidity <- glm(
+  epidemic ~ rainfall3 + Aero3 + windspeed3 + Land_category,
+  data = merged_data,
+  weights = merged_data$weightswithcosine,
+  family = binomial,
+  method = "brglmFit"
+)
 
-#confusionMatrix(merged_data$epidemic, predicted)
+lrtest(model, mod_drop_humidity)
+AIC_null <- AIC(model)
+AIC_full <- AIC(mod_drop_humidity)
+merged_data$pred_drop_humidity <- predict(mod_drop_humidity, type = "response")
+auc_drop_humidity <- auc(roc(merged_data$epidemic, merged_data$pred_drop_humidity))
 
-predicted_classes <- ifelse(predicted > 0.4, 1, 0)
-conf_matrix <- table(Actual = merged_data$epidemic,Predicted = predicted_classes )
-print(conf_matrix)
-
-
-# Calculate sensitivity and specificity
-sensitivity<- sensitivity(merged_data$epidemic, predicted_classes)
-
-
-#calculate specificity
-specificity<-  specificity(merged_data$epidemic, predicted_classes)
-
-
-cat("Sensitivity:", sensitivity)
-cat("Specificity:", specificity)
+auc_drop_humidity
 
 
-model2 <- glm(epidemic ~ Aero3 +  rainfall3   + humidity3,
+
+mod_drop_wind <- glm(
+  epidemic ~ rainfall3 + Aero3 + humidity3 + Land_category,
+  data = merged_data,
+  weights = merged_data$weightswithcosine,
+  family = binomial,
+  method = "brglmFit"
+)
+
+lrtest(model, mod_drop_wind)
+
+merged_data$pred_drop_wind <- predict(mod_drop_wind, type = "response")
+auc_drop_wind <- auc(roc(merged_data$epidemic, merged_data$pred_drop_wind))
+
+auc_drop_wind
+
+results <- data.frame(
+  Model = c("Full", "Drop Land", "Drop Rain", "Drop Aero", "Drop Humidity", "Drop Wind"),
+  AUC = c(
+    auc_full,
+    auc_drop_land,
+    auc_drop_rain,
+    auc_drop_aero,
+    auc_drop_humidity,
+    auc_drop_wind
+  )
+)
+
+results
+
+
+AIC_null <- AIC(mod_drop_land)
+AIC_null
+AIC_null <- AIC(mod_drop_wind)
+AIC_null
+AIC_null <- AIC(mod_drop_rain)
+AIC_null
+AIC_null <- AIC(mod_drop_aero)
+AIC_null
+AIC_null <- AIC(mod_drop_humidity)
+AIC_null
+AIC_null <- AIC(mod_drop_wind)
+AIC_null
+model_no_land <- glm(
+  epidemic ~ Aero3 + humidity3 + windspeed3 + rainfall3 ,
+  data = merged_data,
+  weights = merged_data$weightswithcosine,
+  family = binomial,
+  method = "brglmFit"
+)
+
+
+merged_data$pred_drop_land <- predict(model_no_land, type = "response")
+auc_drop_land <- auc(roc(merged_data$epidemic, merged_data$pred_drop_land))
+
+
+
+
+
+
+model_no_land_wind <- glm(
+  epidemic ~ Aero3 + humidity3 + rainfall3 ,
+  data = merged_data,
+  weights = merged_data$weightswithcosine,
+  family = binomial,
+  method = "brglmFit"
+)
+
+
+merged_data$pred_drop_wind <- predict(model_no_land_wind, type = "response")
+auc_drop_wind <- auc(roc(merged_data$epidemic, merged_data$pred_drop_wind))
+
+auc_drop_land
+auc_drop_wind 
+
+
+lrtest(model_no_land, model_no_land_wind )
+
+
+
+model2 <- glm(epidemic ~ rainfall3 + Aero3 + humidity3 + windspeed3,
               data = merged_data, 
               family = "binomial",
               weights = merged_data$weightswithcosine,method = "brglmFit")
 
 
-
+model2 <- glm(epidemic ~ rainfall3 + Aero3 + humidity3 + windspeed3 ,
+              data = merged_data, 
+            family = "binomial",
+            weights = merged_data$weightswithcosine,method = "brglmFit")
 summary(model2)
+# Get predictions on the link scale
+# Predict on the link scale (logit)
+pred_link <- predict(model2, type = "link", se.fit = TRUE)
+
+# Standard error on the link scale
+se_link <- pred_link$se.fit
+
+# Critical value for 95% CI
+crit <- 1.96
+
+# Confidence intervals on the link scale
+link_lower <- pred_link$fit - crit * se_link
+link_upper <- pred_link$fit + crit * se_link
+
+# Convert to probability scale
+pred_prob  <- plogis(pred_link$fit)
+prob_lower <- plogis(link_lower)
+prob_upper <- plogis(link_upper)
+
+# Standard error on the probability scale (delta method)
+se_prob <- plogis(pred_link$fit) * (1 - plogis(pred_link$fit)) * se_link
+
+# Attach to your dataset
+merged_data$pred_prob  <- pred_prob
+merged_data$se_prob    <- se_prob
+merged_data$prob_lower <- prob_lower
+merged_data$prob_upper <- prob_upper
+
+
+
+
+
+#Consider adding uncertainty layers (eg, standard errors or 95% CIs of predicted probabilities) and/or regional calibration plots to convey confidence in model outputs.
 # McFadden’s R2,In practice, values over 0.40 indicate that a model fits the data very well.
-ors <- exp(coef(model2))
-cis <- exp(confint.default(model2))
-cbind(ors, cis)
+
 pscl::pR2(model2)["McFadden"]
 
 LL_model <- logLik(model2)
@@ -752,14 +969,12 @@ sensitivity<- sensitivity(merged_data$epidemic, predicted_classes)
 #calculate specificity
 specificity<-  specificity(merged_data$epidemic, predicted_classes)
 
-
 cat("Sensitivity:", sensitivity)
 cat("Specificity:", specificity)
 
 
 
-exp(coef(model2))
-exp(cbind(Odds_Ratio = coef(model2), confint(model2)))
+
 roc_curve <- roc(merged_data$epidemic, predicted)
 
 # Choose colors from Wes Anderson palette
@@ -782,20 +997,14 @@ risk_categories <- c( "Very Low <0.2", "Low <0.4","Moderate <0.6", "High <0.8", 
 
 merged_data2<-cbind(merged_data, predicted)
 
-
-
-
-
-
-
 merged_data2$risk_category <- cut(merged_data2$predicted, breaks = cutoffs, labels = risk_categories, include.lowest = TRUE)
 merged_data2<-cbind(merged_data2, dataset_merge)
 testtable <- table(merged_data2$epidemic, merged_data2$COUNTRY.x)
-non_meningitis_risk <-merged_data2[, c("COUNTRY.x","NAME_1", "NAME_2.x","risk_category", "geometry.y")]
+non_meningitis_risk <-merged_data2[, c("COUNTRY.x", "risk_category")]
 
 risk_table <- non_meningitis_risk %>%
   group_by(COUNTRY.x, risk_category)
-
+table(risk_table$risk_category)
 table(risk_table$risk_category, risk_table$COUNTRY.x)
 
 non_meningitis_risk <-merged_data2[, c("COUNTRY.x", "risk_category")]
@@ -813,7 +1022,7 @@ risk_table <- non_meningitis_risk %>%
   group_by(COUNTRY.x, risk_category)
 table(risk_table$risk_category, risk_table$COUNTRY.x)
 
-
+table(risk_table$risk_category)
 
 non_meningitis_risk <-merged_data2[, c("COUNTRY.x", "risk_category")]
 country_list <- c(
@@ -836,6 +1045,11 @@ table(risk_table$risk_category, risk_table$COUNTRY.x)
 table(merged_data2$risk_category)
 merged_dataset2<-st_as_sf(merged_data2)
 plot(merged_dataset2['risk_category']) 
+sf_subset <- merged_dataset2[, c("COUNTRY.x","NAME_1","NAME_2.x","risk_category", "geometry.y")]
+plot(sf_subset['risk_category'])
+
+
+
 
 merged_data2<-st_as_sf(merged_data2)
 
@@ -849,10 +1063,64 @@ raster_template <- raster(extent(merged_data2), res = 0.1)  # You can adjust res
 rasterized_column <- rasterize(merged_data2, raster_template, field = column_to_raster)
 
 # Plot the rasterized column
-#library(RColorBrewer)
+library(RColorBrewer)
 magma_like_palette <- brewer.pal(5, "Blues")
 
 plot(rasterized_column, col=magma_like_palette)
+
+
+# low_prob
+
+cutoffs <- c(0, 0.2, 0.4,0.6, 0.8,1)
+risk_categories <- c( "Very Low <0.2", "Low <0.4","Moderate <0.6", "High <0.8", "Very High <1")
+
+
+merged_data2$risk_category <- cut(merged_data2$prob_lower, breaks = cutoffs, labels = risk_categories, include.lowest = TRUE)
+merged_data2<-cbind(merged_data2, dataset_merge)
+
+
+column_to_raster <- merged_data2$risk_category
+
+# Create a raster template from the shapefile
+raster_template <- raster(extent(merged_data2), res = 0.1)  # You can adjust resolution as needed
+
+# Convert the column to raster
+rasterized_column <- rasterize(merged_data2, raster_template, field = column_to_raster)
+
+# Plot the rasterized column
+library(RColorBrewer)
+magma_like_palette <- brewer.pal(5, "Blues")
+
+plot(rasterized_column, col=magma_like_palette)
+
+
+
+# high_prob
+
+cutoffs <- c(0, 0.2, 0.4,0.6, 0.8,1)
+risk_categories <- c( "Very Low <0.2", "Low <0.4","Moderate <0.6", "High <0.8", "Very High <1")
+
+
+merged_data2$risk_category <- cut(merged_data2$prob_upper, breaks = cutoffs, labels = risk_categories, include.lowest = TRUE)
+merged_data2<-cbind(merged_data2, dataset_merge)
+
+
+column_to_raster <- merged_data2$risk_category
+
+# Create a raster template from the shapefile
+raster_template <- raster(extent(merged_data2), res = 0.1)  # You can adjust resolution as needed
+
+# Convert the column to raster
+rasterized_column <- rasterize(merged_data2, raster_template, field = column_to_raster)
+
+# Plot the rasterized column
+library(RColorBrewer)
+magma_like_palette <- brewer.pal(5, "Blues")
+
+plot(rasterized_column, col=magma_like_palette)
+
+
+
 
 
 
@@ -868,7 +1136,7 @@ perform_analysis <- function(data) {
   # Fit a logistic regression model
   #backwardsmodel <- glm(epidemic ~ rainfall3 + Aero3 + humidity3 + windspeed3 + Land_category,
   #family = binomial, data = train.data, method = "brglmFit")
-  backwardsmodel <- glm(epidemic ~ Aero3 + humidity3 + rainfall3, 
+  backwardsmodel <- glm(epidemic ~ Aero3 + humidity3 + rainfall3 +windspeed3, 
                         data = merged_data, 
                         family = "binomial",
                         weights = merged_data$weightswithcosine,method = "brglmFit")
@@ -931,35 +1199,82 @@ cat("Specificity:", average_specificity, "(", confidence_intervalspecificty, ")\
 
 
 
-test_daata<-merged_data
-test_daata <- lapply(test_daata, as.factor)
 
-# Convert factors to numeric
-test_daata <- lapply(test_daata, as.numeric)
-test_data <- as.data.frame(test_daata)
-test_data <- test_data[, !colnames(test_data) %in% c("epidemic", "Pp_dnst")]
-test_data$Rainfall<-test_data$rainfall3
-test_data$Aerosol_optical_depth<-test_data$Aero3
-test_data$Humidity<-test_data$humidity3
-test_data$Windspeed<-test_data$windspeed3
-test_data <- test_data[, !colnames(test_data) %in% c("windspeed3", "humidity3", "Aero3", "rainfall3","cosine_latitude"    
-                                                     ,"scaled_cos_latitude","weights","weightswithcosine")]
-# Compute correlation matrix
-correlation_matrix <- cor(test_data)
 
-# Visualize correlation matrix using a heatmap
-# Using ggplot2
-ggplot(melt(correlation_matrix), aes(Var1, Var2, fill=value)) +
-  geom_tile(color="white") +
-  scale_fill_gradient2(low="blue", mid="white", high="red", midpoint=0, limit=c(-1,1), space="Lab", name="Correlation") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1,)) +
-  coord_fixed()
 
-corrplot(correlation_matrix, method = "color", type = "upper", 
-         addCoef.col = "black", number.cex = 1.2, tl.cex = 1.2,
-         tl.col = "black", col = colorRampPalette(c("#ff0000", "white", "#195696"))(10000))
 
+perform_analysis <- function(data) {
+  # Set seed for reproducibility
+  
+  
+  # Create training and test datasets
+  training.samples <- data$epidemic %>% createDataPartition(p = 0.6, list = FALSE)
+  train.data <- data[training.samples, ]
+  test.data <- data[-training.samples, ]
+  
+  # Fit a logistic regression model
+  #backwardsmodel <- glm(epidemic ~ rainfall3 + Aero3 + humidity3 + windspeed3 + Land_category,
+  #family = binomial, data = train.data, method = "brglmFit")
+  backwardsmodel <- glm(epidemic ~ Aero3 + humidity3 + rainfall3 +windspeed3, 
+                        data = merged_data, 
+                        family = "binomial",
+                        weights = merged_data$weightswithcosine,method = "brglmFit")
+  options(scipen = 999)
+  cat("Summary of the logistic regression model:\n")
+  print(summary(backwardsmodel))
+  caret::varImp(model2)
+  # Predict on the test dataset
+  predicted <- predict(backwardsmodel, test.data, type = "response")
+  
+  # Find optimal cutoff probability
+  optimal <- optimalCutoff(test.data$epidemic, predicted)[1]
+  cat("Optimal cutoff probability:", optimal, "\n")
+  
+  # Create confusion matrix
+  predicted_classes <- ifelse(predicted > 0.4, 1, 0)
+  conf_matrix <- table(Actual = test.data$epidemic, Predicted = predicted_classes)
+  print("Confusion Matrix:")
+  print(conf_matrix)
+  
+  # Calculate sensitivity and specificity
+  sensitivity<- sensitivity(test.data$epidemic, predicted_classes)
+  
+  
+  #calculate specificity
+  specificity<-  specificity(test.data$epidemic, predicted_classes)
+  
+  # Return sensitivity and specificity
+  return(c(sensitivity, specificity))
+}
+
+
+# Run the analysis multiple times and average the results
+num_runs <- 10
+sensitivity_values <- numeric(num_runs)
+specificity_values <- numeric(num_runs)
+
+for (i in 1:num_runs) {
+  cat("\nRun:", i, "\n")
+  results <- perform_analysis(merged_data)
+  sensitivity_values[i] <- results[1]
+  specificity_values[i] <- results[2]
+}
+
+# Calculate average sensitivity and specificity
+average_sensitivity <- mean(sensitivity_values)
+average_specificity <- mean(specificity_values)
+
+# Calculate 95% confidence interval
+confidence_intervalsensitivty <- t.test(sensitivity_values)$conf.int
+
+# Calculate 95% confidence interval
+confidence_intervalspecificty <- t.test(specificity_values)$conf.int
+
+
+#
+
+cat("Sensitivity:", average_sensitivity, "(", confidence_intervalsensitivty, ")\n")
+cat("Specificity:", average_specificity, "(", confidence_intervalspecificty, ")\n")
 
 
 
